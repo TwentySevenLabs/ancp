@@ -1,0 +1,75 @@
+{
+  "ancpVersion": "1.0.0",
+  "documentKind": "manifest.capabilities",
+  "producer": {
+    "name": "ancp-typescript-adapter",
+    "version": "1.0.0"
+  },
+  "createdAt": "2026-05-21T00:00:00Z",
+  "workspace": {
+    "rootUri": "file:///repo",
+    "workspaceId": "sha256:8f9f0b7a",
+    "name": "example-web-app",
+    "vcs": {
+      "kind": "git",
+      "rootUri": "file:///repo",
+      "revision": "aabbccddeeff",
+      "branch": "main",
+      "dirty": true
+    },
+    "packageManager": "npm"
+  },
+  "profiles": ["core", "explain", "repair-plan", "verify", "skills"],
+  "operations": [
+    {
+      "name": "check",
+      "profile": "core",
+      "supported": true,
+      "stability": "stable"
+    },
+    {
+      "name": "explain",
+      "profile": "explain",
+      "supported": true,
+      "stability": "stable"
+    },
+    {
+      "name": "verify",
+      "profile": "verify",
+      "supported": true,
+      "stability": "stable",
+      "effects": [
+        {
+          "kind": "process.spawn",
+          "scope": "workspace",
+          "reason": "Runs tsc and project test commands",
+          "safetyLevel": "review_required",
+          "evidence": "manifest"
+        }
+      ]
+    }
+  ],
+  "languages": [
+    {
+      "languageId": "typescript",
+      "names": ["TypeScript"],
+      "fileExtensions": [".ts", ".tsx"],
+      "version": "5.8.3"
+    }
+  ],
+  "toolchain": [
+    {
+      "name": "typescript",
+      "version": "5.8.3",
+      "role": "typechecker",
+      "command": ["tsc", "--noEmit", "--pretty", "false"]
+    },
+    {
+      "name": "eslint",
+      "version": "10.4.0",
+      "role": "linter",
+      "command": ["eslint", "--format", "json", "."]
+    }
+  ]
+}
+

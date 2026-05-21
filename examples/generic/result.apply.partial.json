@@ -1,0 +1,24 @@
+{
+  "ancpVersion": "1.0.0",
+  "documentKind": "result.apply",
+  "producer": {
+    "name": "ancp-typescript-adapter",
+    "version": "1.0.0"
+  },
+  "createdAt": "2026-05-21T00:00:00Z",
+  "status": "rolled_back",
+  "planId": "plan-ts-multi-fix",
+  "apply": {
+    "appliedActionIds": ["action-ts-001"],
+    "failedActionIds": ["action-ts-002"],
+    "rejectedActionIds": [],
+    "changedArtifacts": [],
+    "rollback": {
+      "attempted": true,
+      "succeeded": true,
+      "strategy": "in-memory",
+      "notes": "Action action-ts-002 failed: precondition text.contains did not match after action-ts-001 was applied. All changes from action-ts-001 were rolled back from in-memory backup."
+    },
+    "summary": "Plan partially failed. Action action-ts-001 applied successfully, but action-ts-002 failed because the expected text was no longer present after the first edit. Rollback restored the workspace to its original state."
+  }
+}

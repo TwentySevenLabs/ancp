@@ -1,0 +1,93 @@
+{
+  "ancpVersion": "1.0.0",
+  "documentKind": "result.check",
+  "producer": {
+    "name": "ancp-typescript-adapter",
+    "version": "1.0.0"
+  },
+  "createdAt": "2026-05-21T00:00:00Z",
+  "status": "failed",
+  "workspace": {
+    "rootUri": "file:///repo",
+    "workspaceId": "sha256:8f9f0b7a"
+  },
+  "run": {
+    "runId": "run-ts-001",
+    "command": ["tsc", "--noEmit", "--pretty", "false"],
+    "workingDirectory": "/repo",
+    "startedAt": "2026-05-21T00:00:00Z",
+    "endedAt": "2026-05-21T00:00:01Z",
+    "durationMs": 421,
+    "exitCode": 2
+  },
+  "toolchain": [
+    {
+      "name": "typescript",
+      "version": "5.8.3",
+      "role": "typechecker",
+      "command": ["tsc", "--noEmit", "--pretty", "false"]
+    }
+  ],
+  "diagnostics": [
+    {
+      "id": "diag-ts-001",
+      "canonicalCode": "ancp.diag.symbol.unresolved",
+      "nativeCode": "TS2304",
+      "severity": "error",
+      "kind": "symbol",
+      "message": "Cannot find name 'renderUser'.",
+      "source": "typescript",
+      "primaryLocation": {
+        "artifact": {
+          "uri": "file:///repo/src/app.ts",
+          "languageId": "typescript",
+          "role": "source"
+        },
+        "range": {
+          "unit": "utf16",
+          "start": {
+            "line": 11,
+            "character": 8
+          },
+          "end": {
+            "line": 11,
+            "character": 18
+          }
+        },
+        "selectors": [
+          {
+            "kind": "text",
+            "value": "renderUser",
+            "confidence": 0.9
+          },
+          {
+            "kind": "context",
+            "value": "return renderUser(user)",
+            "confidence": 0.72
+          }
+        ]
+      },
+      "symbols": [
+        {
+          "name": "renderUser",
+          "kind": "function"
+        }
+      ],
+      "repairHints": [
+        {
+          "repairId": "ancp.repair.symbol.import_missing",
+          "title": "Import renderUser from an existing module",
+          "confidence": 0.82,
+          "safetyLevel": "review_required"
+        },
+        {
+          "repairId": "ancp.repair.symbol.declare_missing",
+          "title": "Declare renderUser",
+          "confidence": 0.39,
+          "safetyLevel": "review_required"
+        }
+      ]
+    }
+  ]
+}
+

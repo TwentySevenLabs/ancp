@@ -1,0 +1,82 @@
+{
+  "ancpVersion": "1.0.0",
+  "taxonomyKind": "effect-kinds",
+  "entries": [
+    {
+      "id": "filesystem.read",
+      "title": "Read filesystem",
+      "description": "Reads files, directories, metadata, or file content."
+    },
+    {
+      "id": "filesystem.write",
+      "title": "Write filesystem",
+      "description": "Creates, edits, moves, deletes, formats, or otherwise writes files."
+    },
+    {
+      "id": "process.spawn",
+      "title": "Spawn process",
+      "description": "Starts subprocesses, shell commands, build scripts, test runners, or tool plugins."
+    },
+    {
+      "id": "network.access",
+      "title": "Network access",
+      "description": "Uses the network, downloads dependencies, calls APIs, or contacts external services."
+    },
+    {
+      "id": "environment.read",
+      "title": "Read environment",
+      "description": "Reads environment variables, system configuration, or process state."
+    },
+    {
+      "id": "environment.write",
+      "title": "Write environment",
+      "description": "Changes environment variables, shell profile, registry settings, or process configuration."
+    },
+    {
+      "id": "dependency.install",
+      "title": "Install dependency",
+      "description": "Installs, restores, updates, vendors, or resolves dependencies."
+    },
+    {
+      "id": "database.read",
+      "title": "Read database",
+      "description": "Reads from a local or remote database."
+    },
+    {
+      "id": "database.write",
+      "title": "Write database",
+      "description": "Writes to a local or remote database, including migrations."
+    },
+    {
+      "id": "service.call",
+      "title": "Call service",
+      "description": "Calls a local or remote service, daemon, cloud API, or agent."
+    },
+    {
+      "id": "credential.read",
+      "title": "Read credential",
+      "description": "Reads secrets, tokens, certificates, keys, or credential stores."
+    },
+    {
+      "id": "secret.write",
+      "title": "Write secret",
+      "description": "Creates, modifies, deletes, or rotates secrets or credentials."
+    },
+    {
+      "id": "container.run",
+      "title": "Run container",
+      "description": "Builds or runs a container, sandbox, VM, or isolated runtime."
+    },
+    {
+      "id": "vcs.read",
+      "title": "Read VCS",
+      "description": "Reads version-control status, history, remotes, branches, or metadata."
+    },
+    {
+      "id": "vcs.write",
+      "title": "Write VCS",
+      "description": "Stages, commits, tags, rebases, pushes, checks out, or otherwise mutates version control state."
+    }
+  ]
+}
+

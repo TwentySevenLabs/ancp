@@ -1,0 +1,23 @@
+{
+  "ancpVersion": "1.0.0",
+  "documentKind": "result.apply",
+  "producer": {
+    "name": "ancp-typescript-adapter",
+    "version": "1.0.0"
+  },
+  "createdAt": "2026-05-21T00:00:00Z",
+  "status": "applied",
+  "planId": "plan-ts-import-render-user",
+  "apply": {
+    "appliedActionIds": ["action-ts-001"],
+    "changedArtifacts": [
+      {
+        "uri": "file:///repo/src/app.ts",
+        "languageId": "typescript",
+        "role": "source"
+      }
+    ],
+    "rejectedActionIds": [],
+    "summary": "Inserted one import into src/app.ts after all required preconditions passed."
+  }
+}

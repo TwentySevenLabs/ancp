@@ -1,0 +1,56 @@
+{
+  "ancpVersion": "1.0.0",
+  "documentKind": "manifest.adapter",
+  "producer": {
+    "name": "ancp-typescript-adapter",
+    "version": "1.0.0",
+    "homepage": "https://agent-native-compiler-protocol.org",
+    "sourceUri": "https://github.com/example/ancp-typescript-adapter",
+    "license": "Apache-2.0"
+  },
+  "createdAt": "2026-05-21T00:00:00Z",
+  "profiles": ["core", "explain", "repair-plan", "verify", "skills"],
+  "operations": [
+    {
+      "name": "manifest",
+      "profile": "core",
+      "supported": true,
+      "stability": "stable"
+    },
+    {
+      "name": "check",
+      "profile": "core",
+      "supported": true,
+      "stability": "stable",
+      "effects": [
+        {
+          "kind": "filesystem.read",
+          "scope": "workspace",
+          "reason": "Read source files and tsconfig.json",
+          "safetyLevel": "automatic",
+          "evidence": "static"
+        }
+      ]
+    },
+    {
+      "name": "repair --plan",
+      "profile": "repair-plan",
+      "supported": true,
+      "stability": "stable"
+    }
+  ],
+  "languages": [
+    {
+      "languageId": "typescript",
+      "names": ["TypeScript"],
+      "fileExtensions": [".ts", ".tsx"],
+      "version": "5.x"
+    },
+    {
+      "languageId": "javascript",
+      "names": ["JavaScript"],
+      "fileExtensions": [".js", ".jsx", ".mjs", ".cjs"]
+    }
+  ]
+}
+

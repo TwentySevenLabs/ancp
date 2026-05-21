@@ -1,0 +1,78 @@
+{
+  "ancpVersion": "1.0.0",
+  "documentKind": "result.check",
+  "producer": {
+    "name": "ancp-rust-adapter",
+    "version": "1.0.0"
+  },
+  "createdAt": "2026-05-21T00:00:00Z",
+  "status": "failed",
+  "workspace": {
+    "rootUri": "file:///repo",
+    "workspaceId": "sha256:rust-demo"
+  },
+  "run": {
+    "runId": "run-rust-001",
+    "command": ["cargo", "check", "--message-format=json"],
+    "workingDirectory": "/repo",
+    "startedAt": "2026-05-21T00:00:00Z",
+    "durationMs": 733,
+    "exitCode": 101
+  },
+  "toolchain": [
+    {
+      "name": "cargo",
+      "version": "1.91.0",
+      "role": "build",
+      "command": ["cargo", "check", "--message-format=json"]
+    },
+    {
+      "name": "rustc",
+      "version": "1.91.0",
+      "role": "compiler"
+    }
+  ],
+  "diagnostics": [
+    {
+      "id": "diag-rs-001",
+      "canonicalCode": "ancp.diag.symbol.unresolved",
+      "nativeCode": "E0425",
+      "severity": "error",
+      "kind": "symbol",
+      "message": "cannot find value `count` in this scope",
+      "source": "rustc",
+      "primaryLocation": {
+        "artifact": {
+          "uri": "file:///repo/src/main.rs",
+          "languageId": "rust",
+          "role": "source"
+        },
+        "range": {
+          "unit": "byte",
+          "start": {
+            "line": 6,
+            "character": 12
+          },
+          "end": {
+            "line": 6,
+            "character": 17
+          }
+        }
+      },
+      "repairHints": [
+        {
+          "repairId": "ancp.repair.symbol.declare_missing",
+          "title": "Declare count before use",
+          "confidence": 0.66,
+          "safetyLevel": "review_required",
+          "reason": "rustc reported an unresolved value with a precise span."
+        }
+      ],
+      "data": {
+        "rustcLevel": "error",
+        "suggestionApplicability": "maybe-incorrect"
+      }
+    }
+  ]
+}
+

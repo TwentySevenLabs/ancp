@@ -1,0 +1,127 @@
+{
+  "ancpVersion": "1.0.0",
+  "taxonomyKind": "repair-kinds",
+  "entries": [
+    {
+      "id": "ancp.repair.symbol.import_missing",
+      "kind": "symbol",
+      "title": "Import missing symbol",
+      "description": "Add or update an import/include/using/use statement for a missing symbol."
+    },
+    {
+      "id": "ancp.repair.symbol.declare_missing",
+      "kind": "symbol",
+      "title": "Declare missing symbol",
+      "description": "Create a declaration or definition for a referenced symbol."
+    },
+    {
+      "id": "ancp.repair.symbol.rename_reference",
+      "kind": "symbol",
+      "title": "Rename reference",
+      "description": "Change a reference to an existing symbol with a close match."
+    },
+    {
+      "id": "ancp.repair.type.adjust_annotation",
+      "kind": "type",
+      "title": "Adjust type annotation",
+      "description": "Change a type annotation, generic argument, interface, or bound."
+    },
+    {
+      "id": "ancp.repair.type.convert_value",
+      "kind": "type",
+      "title": "Convert value",
+      "description": "Insert an explicit conversion, cast, parse, unwrap, await, or adaptation."
+    },
+    {
+      "id": "ancp.repair.call.add_argument",
+      "kind": "type",
+      "title": "Add missing argument",
+      "description": "Add a required call argument."
+    },
+    {
+      "id": "ancp.repair.call.remove_argument",
+      "kind": "type",
+      "title": "Remove extra argument",
+      "description": "Remove an unsupported or excess call argument."
+    },
+    {
+      "id": "ancp.repair.call.rename_argument",
+      "kind": "type",
+      "title": "Rename argument",
+      "description": "Change a named argument, property, field, or parameter label."
+    },
+    {
+      "id": "ancp.repair.module.add_dependency",
+      "kind": "dependency",
+      "title": "Add dependency",
+      "description": "Add a dependency to a manifest, lockfile, project file, or build file."
+    },
+    {
+      "id": "ancp.repair.module.update_dependency",
+      "kind": "dependency",
+      "title": "Update dependency",
+      "description": "Change a dependency version, feature, classifier, target, or constraint."
+    },
+    {
+      "id": "ancp.repair.config.adjust_option",
+      "kind": "configuration",
+      "title": "Adjust configuration option",
+      "description": "Change a compiler, linter, analyzer, formatter, or build option."
+    },
+    {
+      "id": "ancp.repair.syntax.insert_token",
+      "kind": "syntax",
+      "title": "Insert missing token",
+      "description": "Insert a punctuation, keyword, delimiter, terminator, or syntactic marker."
+    },
+    {
+      "id": "ancp.repair.syntax.remove_token",
+      "kind": "syntax",
+      "title": "Remove invalid token",
+      "description": "Remove a token that violates the language grammar."
+    },
+    {
+      "id": "ancp.repair.format.apply_formatter",
+      "kind": "format",
+      "title": "Apply formatter",
+      "description": "Run a formatter or apply formatter-generated text edits."
+    },
+    {
+      "id": "ancp.repair.lint.apply_fix",
+      "kind": "lint",
+      "title": "Apply linter fix",
+      "description": "Apply a linter-provided fix or suggestion."
+    },
+    {
+      "id": "ancp.repair.test.update_expectation",
+      "kind": "test",
+      "title": "Update test expectation",
+      "description": "Update a test expectation, assertion, fixture, golden file, or snapshot. This is review-required by default."
+    },
+    {
+      "id": "ancp.repair.test.fix_subject",
+      "kind": "test",
+      "title": "Fix code under test",
+      "description": "Change product code to satisfy an existing test."
+    },
+    {
+      "id": "ancp.repair.effect.declare_capability",
+      "kind": "effect",
+      "title": "Declare capability",
+      "description": "Add or update a declared permission, effect, capability, import, or policy."
+    },
+    {
+      "id": "ancp.repair.security.remove_secret",
+      "kind": "security",
+      "title": "Remove secret",
+      "description": "Remove a hardcoded credential or secret and replace it with a safe reference."
+    },
+    {
+      "id": "ancp.repair.manual",
+      "kind": "unknown",
+      "title": "Manual repair required",
+      "description": "No safe automated repair is known."
+    }
+  ]
+}
+

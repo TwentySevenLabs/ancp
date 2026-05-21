@@ -1,0 +1,68 @@
+{
+  "ancpVersion": "1.0.0",
+  "documentKind": "result.check",
+  "producer": {
+    "name": "ancp-python-adapter",
+    "version": "1.0.0"
+  },
+  "createdAt": "2026-05-21T00:00:00Z",
+  "status": "failed",
+  "workspace": {
+    "rootUri": "file:///repo",
+    "workspaceId": "sha256:python-demo"
+  },
+  "run": {
+    "runId": "run-py-001",
+    "command": ["pyright", "--outputjson"],
+    "workingDirectory": "/repo",
+    "startedAt": "2026-05-21T00:00:00Z",
+    "durationMs": 312,
+    "exitCode": 1
+  },
+  "toolchain": [
+    {
+      "name": "pyright",
+      "version": "1.1.401",
+      "role": "typechecker",
+      "command": ["pyright", "--outputjson"]
+    }
+  ],
+  "diagnostics": [
+    {
+      "id": "diag-py-001",
+      "canonicalCode": "ancp.diag.import.missing",
+      "nativeCode": "reportMissingImports",
+      "severity": "error",
+      "kind": "import",
+      "message": "Import \"rich\" could not be resolved.",
+      "source": "pyright",
+      "primaryLocation": {
+        "artifact": {
+          "uri": "file:///repo/app/main.py",
+          "languageId": "python",
+          "role": "source"
+        },
+        "range": {
+          "unit": "utf16",
+          "start": {
+            "line": 0,
+            "character": 7
+          },
+          "end": {
+            "line": 0,
+            "character": 11
+          }
+        }
+      },
+      "repairHints": [
+        {
+          "repairId": "ancp.repair.module.add_dependency",
+          "title": "Add rich to project dependencies",
+          "confidence": 0.71,
+          "safetyLevel": "review_required"
+        }
+      ]
+    }
+  ]
+}
+

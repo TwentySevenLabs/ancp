@@ -1,0 +1,27 @@
+{
+  "ancpVersion": "1.0.0",
+  "documentKind": "result.skills",
+  "producer": {
+    "name": "ancp-typescript-adapter",
+    "version": "1.0.0"
+  },
+  "createdAt": "2026-05-21T00:00:00Z",
+  "skills": {
+    "toolchain": [
+      {
+        "name": "typescript",
+        "version": "5.8.3",
+        "role": "typechecker"
+      }
+    ],
+    "sections": [
+      {
+        "id": "typescript-repair-loop",
+        "title": "TypeScript Repair Loop",
+        "content": "Run check first. Prefer Compiler API diagnostics. Do not parse pretty tsc output. Generate repair plans before editing. Verify with tsc --noEmit.",
+        "appliesTo": ["typescript"]
+      }
+    ]
+  }
+}
+

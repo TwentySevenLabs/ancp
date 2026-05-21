@@ -1,0 +1,53 @@
+{
+  "ancpVersion": "1.0.0",
+  "documentKind": "graph.code",
+  "producer": {
+    "name": "ancp-typescript-adapter",
+    "version": "1.0.0"
+  },
+  "createdAt": "2026-05-21T00:00:00Z",
+  "workspace": {
+    "rootUri": "file:///repo",
+    "workspaceId": "sha256:8f9f0b7a"
+  },
+  "graph": {
+    "nodes": [
+      {
+        "id": "file-src-app-ts",
+        "kind": "file",
+        "label": "src/app.ts",
+        "location": {
+          "artifact": {
+            "uri": "file:///repo/src/app.ts",
+            "languageId": "typescript",
+            "role": "source"
+          },
+          "range": {
+            "unit": "utf16",
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 50,
+              "character": 0
+            }
+          }
+        }
+      },
+      {
+        "id": "symbol-render-user",
+        "kind": "function",
+        "label": "renderUser"
+      }
+    ],
+    "edges": [
+      {
+        "from": "file-src-app-ts",
+        "to": "symbol-render-user",
+        "kind": "references"
+      }
+    ]
+  }
+}
+

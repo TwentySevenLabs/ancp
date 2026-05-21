@@ -1,0 +1,34 @@
+{
+  "ancpVersion": "1.0.0",
+  "documentKind": "result.explain",
+  "producer": {
+    "name": "ancp-core",
+    "version": "1.0.0"
+  },
+  "createdAt": "2026-05-21T00:00:00Z",
+  "explanation": {
+    "query": "ancp.diag.symbol.unresolved",
+    "title": "Unresolved symbol",
+    "summary": "The toolchain found a reference to a symbol that is not visible in the current scope.",
+    "appliesTo": ["typescript", "rust", "python", "go", "java", "csharp", "swift", "kotlin", "scala", "ruby", "php"],
+    "commonCauses": [
+      "The symbol was not imported.",
+      "The symbol was misspelled.",
+      "The dependency that provides the symbol is missing.",
+      "The symbol is conditionally compiled out.",
+      "The current file is checked with different build configuration than expected."
+    ],
+    "repairIds": [
+      "ancp.repair.symbol.import_missing",
+      "ancp.repair.symbol.declare_missing",
+      "ancp.repair.symbol.rename_reference"
+    ],
+    "references": [
+      {
+        "title": "ANCP diagnostic taxonomy",
+        "uri": "https://agent-native-compiler-protocol.org/taxonomies/diagnostic-kinds"
+      }
+    ]
+  }
+}
+

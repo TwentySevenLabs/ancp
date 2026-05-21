@@ -1,0 +1,26 @@
+{
+  "ancpVersion": "1.0.0",
+  "documentKind": "result.check",
+  "producer": {
+    "name": "ancp-python-adapter",
+    "version": "1.0.0"
+  },
+  "createdAt": "2026-05-21T00:00:00Z",
+  "status": "protocol_error",
+  "workspace": {
+    "rootUri": "file:///repo"
+  },
+  "run": {
+    "runId": "run-error-001",
+    "startedAt": "2026-05-21T00:00:00Z",
+    "durationMs": 2
+  },
+  "toolchain": [],
+  "diagnostics": [],
+  "data": {
+    "reason": "The repair-plan profile is not supported by this adapter. This adapter only supports the core and explain profiles.",
+    "missingProfile": "repair-plan",
+    "requestedCommand": "ancp repair --plan --json",
+    "supportedProfiles": ["core", "explain"]
+  }
+}

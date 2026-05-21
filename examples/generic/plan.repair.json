@@ -1,0 +1,104 @@
+{
+  "ancpVersion": "1.0.0",
+  "documentKind": "plan.repair",
+  "producer": {
+    "name": "ancp-typescript-adapter",
+    "version": "1.0.0"
+  },
+  "createdAt": "2026-05-21T00:00:00Z",
+  "status": "available",
+  "planId": "plan-ts-import-render-user",
+  "targetDiagnostics": ["diag-ts-001"],
+  "actions": [
+    {
+      "actionId": "action-ts-001",
+      "repairId": "ancp.repair.symbol.import_missing",
+      "title": "Import renderUser from ./renderUser",
+      "intent": "Add a missing import for the unresolved symbol.",
+      "confidence": 0.82,
+      "safetyLevel": "review_required",
+      "targetDiagnostics": ["diag-ts-001"],
+      "edits": [
+        {
+          "editId": "edit-ts-001",
+          "kind": "text.insert",
+          "target": {
+            "artifact": {
+              "uri": "file:///repo/src/app.ts",
+              "languageId": "typescript",
+              "role": "source"
+            },
+            "range": {
+              "unit": "utf16",
+              "start": {
+                "line": 0,
+                "character": 0
+              },
+              "end": {
+                "line": 0,
+                "character": 0
+              }
+            }
+          },
+          "newText": "import { renderUser } from './renderUser';\n"
+        }
+      ],
+      "preconditions": [
+        {
+          "kind": "text.contains",
+          "required": true,
+          "target": {
+            "artifact": {
+              "uri": "file:///repo/src/app.ts",
+              "languageId": "typescript",
+              "role": "source"
+            },
+            "range": {
+              "unit": "utf16",
+              "start": {
+                "line": 0,
+                "character": 0
+              },
+              "end": {
+                "line": 50,
+                "character": 0
+              }
+            }
+          },
+          "value": "renderUser",
+          "message": "The unresolved symbol must still be present."
+        }
+      ],
+      "explanation": "The adapter found an exported renderUser symbol in ./renderUser and proposes a single import edit."
+    }
+  ],
+  "verification": {
+    "policy": "all",
+    "steps": [
+      {
+        "name": "TypeScript check",
+        "argv": ["tsc", "--noEmit", "--pretty", "false"],
+        "workingDirectory": "/repo",
+        "expectedStatus": "passed",
+        "produces": ["result.check"],
+        "effects": [
+          {
+            "kind": "filesystem.read",
+            "scope": "workspace",
+            "reason": "Read TypeScript source and config",
+            "safetyLevel": "automatic",
+            "evidence": "static"
+          },
+          {
+            "kind": "process.spawn",
+            "scope": "workspace",
+            "reason": "Run local TypeScript compiler",
+            "safetyLevel": "automatic",
+            "evidence": "manifest"
+          }
+        ]
+      }
+    ]
+  }
+}
+

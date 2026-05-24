@@ -58,7 +58,7 @@
     "category": "standards",
     "language": "multi",
     "title": "CycloneDX Specification Overview",
-    "url": "https://cyclonedx.org/specification/overview",
+    "url": "https://cyclonedx.org/specification/overview/",
     "local": "standards/cyclonedx-overview.html",
     "relevance": "SBOM, component, dependency, and vulnerability metadata."
   },

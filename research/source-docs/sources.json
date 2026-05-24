@@ -1,0 +1,533 @@
+[
+  {
+    "id": "standards-json-schema-2020-12",
+    "category": "standards",
+    "language": "json",
+    "title": "JSON Schema Draft 2020-12",
+    "url": "https://json-schema.org/draft/2020-12",
+    "local": "standards/json-schema-2020-12.html",
+    "relevance": "Base schema dialect for ANCP validation."
+  },
+  {
+    "id": "standards-lsp",
+    "category": "standards",
+    "language": "multi",
+    "title": "Language Server Protocol",
+    "url": "https://microsoft.github.io/language-server-protocol/",
+    "local": "standards/lsp.html",
+    "relevance": "Diagnostics, code actions, source ranges, and language tooling conventions."
+  },
+  {
+    "id": "standards-sarif-2-1-0",
+    "category": "standards",
+    "language": "multi",
+    "title": "SARIF 2.1.0",
+    "url": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/os/sarif-v2.1.0-os.html",
+    "local": "standards/sarif-2.1.0.html",
+    "relevance": "Static-analysis result interchange and export target."
+  },
+  {
+    "id": "standards-json-patch-rfc6902",
+    "category": "standards",
+    "language": "json",
+    "title": "RFC 6902 JSON Patch",
+    "url": "https://www.rfc-editor.org/rfc/rfc6902.html",
+    "local": "standards/rfc6902-json-patch.html",
+    "relevance": "Patch operation precedent for structured JSON edits."
+  },
+  {
+    "id": "standards-jcs-rfc8785",
+    "category": "standards",
+    "language": "json",
+    "title": "RFC 8785 JSON Canonicalization Scheme",
+    "url": "https://www.rfc-editor.org/rfc/rfc8785.html",
+    "local": "standards/rfc8785-jcs.html",
+    "relevance": "Deterministic JSON hashing and signing."
+  },
+  {
+    "id": "standards-spdx-3-0-1",
+    "category": "standards",
+    "language": "multi",
+    "title": "SPDX 3.0.1 Specification",
+    "url": "https://spdx.github.io/spdx-spec/v3.0.1/",
+    "local": "standards/spdx-3.0.1.html",
+    "relevance": "License, package, and software identity metadata."
+  },
+  {
+    "id": "standards-cyclonedx-overview",
+    "category": "standards",
+    "language": "multi",
+    "title": "CycloneDX Specification Overview",
+    "url": "https://cyclonedx.org/specification/overview",
+    "local": "standards/cyclonedx-overview.html",
+    "relevance": "SBOM, component, dependency, and vulnerability metadata."
+  },
+  {
+    "id": "zero-agent-native-article",
+    "category": "prior-art",
+    "language": "zero",
+    "title": "Zero Agent-Native Toolchain Article",
+    "url": "https://www.marktechpost.com/2026/05/17/vercel-labs-introduces-zero-a-systems-programming-language-designed-so-ai-agents-can-read-repair-and-ship-native-programs/",
+    "local": "prior-art/zero-agent-native-article.html",
+    "relevance": "Prior-art motivation for JSON diagnostics, repair metadata, explain/fix commands, and skills."
+  },
+  {
+    "id": "python-py-compile",
+    "category": "language",
+    "language": "python",
+    "title": "Python py_compile",
+    "url": "https://docs.python.org/3/library/py_compile.html",
+    "local": "python/py_compile.html",
+    "relevance": "Python syntax compilation and PyCompileError behavior."
+  },
+  {
+    "id": "python-compileall",
+    "category": "language",
+    "language": "python",
+    "title": "Python compileall",
+    "url": "https://docs.python.org/3/library/compileall.html",
+    "local": "python/compileall.html",
+    "relevance": "Recursive Python byte-compilation and syntax-check surface."
+  },
+  {
+    "id": "python-mypy-cli",
+    "category": "tool",
+    "language": "python",
+    "title": "Mypy Command Line",
+    "url": "https://mypy.readthedocs.io/en/stable/command_line.html",
+    "local": "python/mypy-command-line.html",
+    "relevance": "Python type-checking diagnostics and JSON output option."
+  },
+  {
+    "id": "python-pyright-cli",
+    "category": "tool",
+    "language": "python",
+    "title": "Pyright Command Line",
+    "url": "https://raw.githubusercontent.com/microsoft/pyright/main/docs/command-line.md",
+    "local": "python/pyright-command-line.md",
+    "relevance": "Python type-checking diagnostics and --outputjson behavior."
+  },
+  {
+    "id": "python-ruff-settings",
+    "category": "tool",
+    "language": "python",
+    "title": "Ruff Settings",
+    "url": "https://docs.astral.sh/ruff/settings/",
+    "local": "python/ruff-settings.html",
+    "relevance": "Python linter machine output formats."
+  },
+  {
+    "id": "python-ruff-formatter",
+    "category": "tool",
+    "language": "python",
+    "title": "Ruff Formatter",
+    "url": "https://docs.astral.sh/ruff/formatter/",
+    "local": "python/ruff-formatter.html",
+    "relevance": "Python formatter check/write behavior."
+  },
+  {
+    "id": "typescript-tsc-options",
+    "category": "language",
+    "language": "typescript",
+    "title": "TypeScript tsc CLI Options",
+    "url": "https://www.typescriptlang.org/docs/handbook/compiler-options.html",
+    "local": "typescript/tsc-compiler-options.html",
+    "relevance": "TypeScript compiler command-line surface."
+  },
+  {
+    "id": "typescript-compiler-api",
+    "category": "language",
+    "language": "typescript",
+    "title": "TypeScript Compiler API",
+    "url": "https://raw.githubusercontent.com/wiki/microsoft/TypeScript/Using-the-Compiler-API.md",
+    "local": "typescript/compiler-api.md",
+    "relevance": "Programmatic diagnostics and transforms."
+  },
+  {
+    "id": "javascript-eslint-formatters",
+    "category": "tool",
+    "language": "javascript",
+    "title": "ESLint Formatters",
+    "url": "https://eslint.org/docs/latest/use/formatters/",
+    "local": "javascript/eslint-formatters.html",
+    "relevance": "JSON lint output, rule IDs, fix/suggestion metadata."
+  },
+  {
+    "id": "javascript-eslint-custom-formatters",
+    "category": "tool",
+    "language": "javascript",
+    "title": "ESLint Custom Formatters",
+    "url": "https://eslint.org/docs/latest/extend/custom-formatters",
+    "local": "javascript/eslint-custom-formatters.html",
+    "relevance": "Formatter extension boundary and JSON pipeline guidance."
+  },
+  {
+    "id": "go-command",
+    "category": "language",
+    "language": "go",
+    "title": "Go Command",
+    "url": "https://go.dev/cmd/go/",
+    "local": "go/go-command.html",
+    "relevance": "Go build, test, list, module, and JSON command behavior."
+  },
+  {
+    "id": "go-compile",
+    "category": "language",
+    "language": "go",
+    "title": "Go Compile Command",
+    "url": "https://go.dev/cmd/compile/",
+    "local": "go/go-compile.html",
+    "relevance": "Go compiler command and flags."
+  },
+  {
+    "id": "go-test2json",
+    "category": "language",
+    "language": "go",
+    "title": "Go test2json",
+    "url": "https://go.dev/cmd/test2json/",
+    "local": "go/test2json.html",
+    "relevance": "Machine-readable Go test event stream."
+  },
+  {
+    "id": "go-gopls-diagnostics",
+    "category": "tool",
+    "language": "go",
+    "title": "gopls Diagnostics",
+    "url": "https://go.dev/gopls/features/diagnostics",
+    "local": "go/gopls-diagnostics.html",
+    "relevance": "Go language server diagnostic sources and behavior."
+  },
+  {
+    "id": "rust-rustc-json",
+    "category": "language",
+    "language": "rust",
+    "title": "rustc JSON Output",
+    "url": "https://doc.rust-lang.org/rustc/json.html",
+    "local": "rust/rustc-json.html",
+    "relevance": "Native structured compiler diagnostics with spans and suggestions."
+  },
+  {
+    "id": "rust-cargo-check",
+    "category": "language",
+    "language": "rust",
+    "title": "cargo check",
+    "url": "https://doc.rust-lang.org/cargo/commands/cargo-check.html",
+    "local": "rust/cargo-check.html",
+    "relevance": "Cargo check and message-format JSON behavior."
+  },
+  {
+    "id": "rust-cargo-fix",
+    "category": "language",
+    "language": "rust",
+    "title": "cargo fix",
+    "url": "https://doc.rust-lang.org/cargo/commands/cargo-fix.html",
+    "local": "rust/cargo-fix.html",
+    "relevance": "Native automated fix workflow."
+  },
+  {
+    "id": "rust-diagnostics-guide",
+    "category": "language",
+    "language": "rust",
+    "title": "Rust Compiler Diagnostics Guide",
+    "url": "https://rustc-dev-guide.rust-lang.org/diagnostics.html",
+    "local": "rust/rustc-diagnostics-guide.html",
+    "relevance": "Compiler diagnostic structure, labels, suggestions, and error codes."
+  },
+  {
+    "id": "ccpp-gcc-diagnostic-formatting",
+    "category": "language",
+    "language": "c-cpp",
+    "title": "GCC Diagnostic Message Formatting",
+    "url": "https://gcc.gnu.org/onlinedocs/gcc/Diagnostic-Message-Formatting-Options.html",
+    "local": "c-cpp/gcc-diagnostic-formatting.html",
+    "relevance": "GCC JSON/SARIF diagnostic output and fix-it hints."
+  },
+  {
+    "id": "ccpp-clang-diagnostics",
+    "category": "language",
+    "language": "c-cpp",
+    "title": "Clang Expressive Diagnostics",
+    "url": "https://clang.llvm.org/diagnostics",
+    "local": "c-cpp/clang-diagnostics.html",
+    "relevance": "Clang diagnostics and fix-it hints."
+  },
+  {
+    "id": "ccpp-clang-diagnostics-reference",
+    "category": "language",
+    "language": "c-cpp",
+    "title": "Clang Diagnostics Reference",
+    "url": "https://clang.llvm.org/docs/DiagnosticsReference.html",
+    "local": "c-cpp/clang-diagnostics-reference.html",
+    "relevance": "Warning flags and diagnostic groups."
+  },
+  {
+    "id": "ccpp-clang-tidy",
+    "category": "tool",
+    "language": "c-cpp",
+    "title": "clang-tidy",
+    "url": "https://clang.llvm.org/extra/clang-tidy/index.html",
+    "local": "c-cpp/clang-tidy.html",
+    "relevance": "C/C++ lint diagnostics and fix flag."
+  },
+  {
+    "id": "ccpp-json-compilation-database",
+    "category": "tool",
+    "language": "c-cpp",
+    "title": "Clang JSON Compilation Database",
+    "url": "https://clang.llvm.org/docs/JSONCompilationDatabase.html",
+    "local": "c-cpp/json-compilation-database.html",
+    "relevance": "Compilation database needed to analyze C/C++ projects correctly."
+  },
+  {
+    "id": "java-javac",
+    "category": "language",
+    "language": "java",
+    "title": "javac Command",
+    "url": "https://docs.oracle.com/en/java/javase/21/docs/specs/man/javac.html",
+    "local": "java/javac.html",
+    "relevance": "Java compiler command-line options and diagnostics."
+  },
+  {
+    "id": "java-compiler-api",
+    "category": "language",
+    "language": "java",
+    "title": "Java Compiler API",
+    "url": "https://docs.oracle.com/en/java/javase/21/docs/api/java.compiler/javax/tools/JavaCompiler.html",
+    "local": "java/java-compiler-api.html",
+    "relevance": "Programmatic compiler invocation and DiagnosticListener."
+  },
+  {
+    "id": "java-jdk-compiler-module",
+    "category": "language",
+    "language": "java",
+    "title": "jdk.compiler Module",
+    "url": "https://docs.oracle.com/en/java/javase/21/docs/api/jdk.compiler/module-summary.html",
+    "local": "java/jdk-compiler-module.html",
+    "relevance": "Compiler tree API and javac implementation module."
+  },
+  {
+    "id": "java-javac-diagnostics-openjdk",
+    "category": "language",
+    "language": "java",
+    "title": "OpenJDK javac Diagnostics",
+    "url": "https://openjdk.org/groups/compiler/doc/hhgtjavac/diagnostics.html",
+    "local": "java/openjdk-javac-diagnostics.html",
+    "relevance": "javac diagnostic internals and formatter model."
+  },
+  {
+    "id": "kotlin-command-line",
+    "category": "language",
+    "language": "kotlin",
+    "title": "Kotlin Command-Line Compiler",
+    "url": "https://kotlinlang.org/docs/command-line.html",
+    "local": "kotlin/command-line.html",
+    "relevance": "Kotlin compiler commands and targets."
+  },
+  {
+    "id": "kotlin-compiler-reference",
+    "category": "language",
+    "language": "kotlin",
+    "title": "Kotlin Compiler Options",
+    "url": "https://kotlinlang.org/docs/compiler-reference.html",
+    "local": "kotlin/compiler-reference.html",
+    "relevance": "Compiler options, diagnostic warning-level controls, JVM/JS/Native targets."
+  },
+  {
+    "id": "kotlin-compiler-plugins",
+    "category": "language",
+    "language": "kotlin",
+    "title": "Kotlin Compiler Plugins",
+    "url": "https://kotlinlang.org/docs/compiler-plugins-overview.html",
+    "local": "kotlin/compiler-plugins.html",
+    "relevance": "Compiler plugin boundaries and instability warning."
+  },
+  {
+    "id": "csharp-compiler-options",
+    "category": "language",
+    "language": "csharp",
+    "title": "C# Compiler Options",
+    "url": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/",
+    "local": "csharp/compiler-options.html",
+    "relevance": "C# compiler options and project/command-line configuration."
+  },
+  {
+    "id": "csharp-compiler-advanced",
+    "category": "language",
+    "language": "csharp",
+    "title": "C# Advanced Compiler Options",
+    "url": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/advanced",
+    "local": "csharp/compiler-options-advanced.html",
+    "relevance": "Path maps, full paths, end-location diagnostics, and advanced compiler settings."
+  },
+  {
+    "id": "csharp-dotnet-format",
+    "category": "tool",
+    "language": "csharp",
+    "title": "dotnet format",
+    "url": "https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-format",
+    "local": "csharp/dotnet-format.html",
+    "relevance": "Formatter/analyzer fix workflow and JSON report option."
+  },
+  {
+    "id": "csharp-code-analyzers",
+    "category": "tool",
+    "language": "csharp",
+    "title": ".NET Code Analyzers",
+    "url": "https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/overview",
+    "local": "csharp/code-analysis-overview.html",
+    "relevance": "Roslyn analyzer diagnostics and rule IDs."
+  },
+  {
+    "id": "swift-compiler",
+    "category": "language",
+    "language": "swift",
+    "title": "Swift Compiler",
+    "url": "https://www.swift.org/documentation/swift-compiler/",
+    "local": "swift/swift-compiler.html",
+    "relevance": "Swift compiler architecture and SourceKit relationship."
+  },
+  {
+    "id": "swift-sourcekit-lsp",
+    "category": "tool",
+    "language": "swift",
+    "title": "SourceKit-LSP README",
+    "url": "https://raw.githubusercontent.com/swiftlang/sourcekit-lsp/main/README.md",
+    "local": "swift/sourcekit-lsp-readme.md",
+    "relevance": "Swift language server integration."
+  },
+  {
+    "id": "swift-diagnostics-index",
+    "category": "language",
+    "language": "swift",
+    "title": "Swift Diagnostic Descriptions",
+    "url": "https://docs.swift.org/compiler/documentation/diagnostics/diagnostic-descriptions/",
+    "local": "swift/diagnostic-descriptions-index.html",
+    "relevance": "Swift compiler diagnostic descriptions."
+  },
+  {
+    "id": "zig-language-reference",
+    "category": "language",
+    "language": "zig",
+    "title": "Zig Language Reference",
+    "url": "https://ziglang.org/documentation/master/",
+    "local": "zig/language-reference.html",
+    "relevance": "Zig compile/test behavior and language diagnostics."
+  },
+  {
+    "id": "zig-build-system",
+    "category": "language",
+    "language": "zig",
+    "title": "Zig Build System",
+    "url": "https://ziglang.org/learn/build-system/",
+    "local": "zig/build-system.html",
+    "relevance": "Zig build graph, test steps, generated files, and tool commands."
+  },
+  {
+    "id": "ruby-options",
+    "category": "language",
+    "language": "ruby",
+    "title": "Ruby Options",
+    "url": "https://docs.ruby-lang.org/en/3.4/ruby/options_md.html",
+    "local": "ruby/options.html",
+    "relevance": "Ruby syntax check mode and command-line behavior."
+  },
+  {
+    "id": "ruby-documentation",
+    "category": "language",
+    "language": "ruby",
+    "title": "Ruby Documentation",
+    "url": "https://www.ruby-lang.org/en/documentation/",
+    "local": "ruby/documentation.html",
+    "relevance": "Ruby official documentation hub."
+  },
+  {
+    "id": "php-cli-options",
+    "category": "language",
+    "language": "php",
+    "title": "PHP Command Line Options",
+    "url": "https://www.php.net/commandline.options",
+    "local": "php/commandline-options.html",
+    "relevance": "PHP lint mode and command-line behavior."
+  },
+  {
+    "id": "dart-analyze",
+    "category": "language",
+    "language": "dart",
+    "title": "dart analyze",
+    "url": "https://dart.dev/tools/dart-analyze",
+    "local": "dart/dart-analyze.html",
+    "relevance": "Dart static analysis CLI."
+  },
+  {
+    "id": "dart-fix",
+    "category": "language",
+    "language": "dart",
+    "title": "dart fix",
+    "url": "https://dart.dev/tools/dart-fix",
+    "local": "dart/dart-fix.html",
+    "relevance": "Dart automated fix workflow and dry-run/apply split."
+  },
+  {
+    "id": "scala-compiler-options",
+    "category": "language",
+    "language": "scala",
+    "title": "Scala Compiler Options",
+    "url": "https://docs.scala-lang.org/overviews/compiler-options/",
+    "local": "scala/compiler-options.html",
+    "relevance": "Scala compiler options and diagnostics/warnings."
+  },
+  {
+    "id": "scala-cli-commands",
+    "category": "tool",
+    "language": "scala",
+    "title": "Scala CLI Commands",
+    "url": "https://scala-cli.virtuslab.org/docs/reference/commands/",
+    "local": "scala/scala-cli-commands.html",
+    "relevance": "Modern Scala CLI build/test/compile command surface and actionable diagnostics."
+  },
+  {
+    "id": "julia-command-line-interface",
+    "category": "language",
+    "language": "julia",
+    "title": "Julia Command-line Interface",
+    "url": "https://docs.julialang.org/en/v1/manual/command-line-interface/",
+    "local": "julia/command-line-interface.html",
+    "relevance": "Julia script execution, -e evaluation, startup control, and compiler-related flags."
+  },
+  {
+    "id": "julia-meta-parse",
+    "category": "language",
+    "language": "julia",
+    "title": "Julia Meta.parse",
+    "url": "https://docs.julialang.org/en/v1/base/base/#Base.Meta.parse",
+    "local": "julia/meta-parse.html",
+    "relevance": "Julia parser behavior, filename-aware syntax diagnostics, and parse error handling."
+  },
+  {
+    "id": "julia-asts",
+    "category": "language",
+    "language": "julia",
+    "title": "Julia ASTs",
+    "url": "https://docs.julialang.org/en/v1/devdocs/ast/",
+    "local": "julia/asts.html",
+    "relevance": "Surface syntax AST, lowered representation, and compiler frontend shape."
+  },
+  {
+    "id": "julia-languageserver-syntax",
+    "category": "tool",
+    "language": "julia",
+    "title": "LanguageServer.jl Syntax Reference",
+    "url": "https://www.julia-vscode.org/LanguageServer.jl/stable/syntax/",
+    "local": "julia/languageserver-syntax.html",
+    "relevance": "Julia LSP server instantiation and integration boundary for structured diagnostics."
+  },
+  {
+    "id": "julia-staticlint",
+    "category": "tool",
+    "language": "julia",
+    "title": "StaticLint.jl",
+    "url": "https://www.julia-vscode.org/StaticLint.jl/v4.4/",
+    "local": "julia/staticlint.html",
+    "relevance": "Julia static analysis used by LanguageServer.jl for project-wide diagnostics."
+  }
+]

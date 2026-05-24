@@ -56,6 +56,7 @@ REQUIRED_LANGUAGES = [
     "php",
     "dart",
     "scala",
+    "julia",
 ]
 
 REQUIRED_DOCS = [

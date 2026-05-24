@@ -10,7 +10,7 @@ ANCP turns tool output into structured diagnostics, repair hints, repair plans, 
 
 ## What This Repository Contains
 
-This repository is the implementation-ready public contract for ANCP 1.0:
+This repository is the public ANCP 1.0 contract and Python reference implementation:
 
 | Area | Status | Location |
 | --- | --- | --- |
@@ -25,9 +25,11 @@ This repository is the implementation-ready public contract for ANCP 1.0:
 | Security model | Written | [docs/security.md](docs/security.md) |
 | Language mapping guide | Written | [docs/language-mapping.md](docs/language-mapping.md) |
 | Example protocol documents | Written | [examples](examples) |
-| Repository verifier | Written | [tools/verify_repo.py](tools/verify_repo.py) |
-
-There is intentionally no language adapter implementation in this repo yet. The point of this repository is to make the contract final enough that implementation becomes straightforward.
+| Reference CLI/package | Implemented | [src/ancp](src/ancp) |
+| Compiler-name shim layer | Implemented | [docs/invisible-compiler-layer.md](docs/invisible-compiler-layer.md) |
+| Native-tool adapters | Implemented | [src/ancp/adapters](src/ancp/adapters) |
+| Bug corpus | Implemented | [examples/buggy](examples/buggy) |
+| Repository verifier | Implemented | [tools/verify_repo.py](tools/verify_repo.py) |
 
 ## Why ANCP Exists
 
@@ -127,14 +129,51 @@ A conformant core adapter can expose this loop:
 
 ```bash
 ancp manifest
-ancp capabilities --json
-ancp check --json
-ancp explain ancp.diag.symbol.unresolved --json
-ancp repair --plan --json
-ancp verify --json
+ancp capabilities
+ancp check
+ancp explain ancp.diag.symbol.unresolved
+ancp repair --plan
+ancp verify
 ```
 
 The adapter may internally call `tsc`, `pyright`, `ruff`, `pytest`, `rustc`, `cargo check`, `go test`, `mypy`, `clang`, `javac`, an LSP server, or any other native tool.
+
+## Invisible Compiler Layer
+
+The reference implementation includes both an agent-facing CLI and a compiler-facing shim layer.
+
+Install:
+
+```bash
+python -m pip install -e .
+```
+
+Create local compiler-name shims:
+
+```bash
+ancp install-shims --dir .ancp/bin
+```
+
+Prepend `.ancp/bin` to PATH, then keep using normal commands:
+
+```bash
+cargo check
+rustc main.rs
+tsc --noEmit
+python -m py_compile app.py
+julia app.jl
+kotlinc Main.kt
+gcc -fsyntax-only main.c
+clang++ -fsyntax-only main.cpp
+```
+
+The native compiler output and exit code are preserved. ANCP writes a structured sidecar:
+
+```text
+.ancp/last-check.json
+```
+
+See [docs/invisible-compiler-layer.md](docs/invisible-compiler-layer.md).
 
 ## Example
 
@@ -202,36 +241,41 @@ The adapter may internally call `tsc`, `pyright`, `ruff`, `pytest`, `rustc`, `ca
 Run:
 
 ```bash
+python -m pip install -e ".[dev]"
+python tools/fetch_sources.py
+python tools/audit_contracts.py
 python tools/verify_repo.py
+pytest
+python tools/run_bug_corpus.py
+python -m build
+python -m twine check dist/*
 ```
 
-The verifier checks:
+The verification stack checks:
 
 - every JSON file parses,
 - the main ANCP schema parses,
 - examples validate against the schema when `jsonschema` is installed,
 - taxonomy entries have stable IDs,
-- documentation links point to existing local files.
-
-For full local validation:
-
-```bash
-python -m pip install -r requirements-dev.txt
-python tools/verify_repo.py
-```
+- documentation links point to existing local files,
+- the contract audit covers document kinds, profiles, docs, examples, and source research,
+- package import, parser, renderer, proxy, shim, and CLI behavior pass unit tests,
+- the multilingual bug corpus emits ANCP JSON/Markdown where native tools are installed,
+- the wheel and sdist pass packaging metadata checks.
 
 ## Production Quality Bar
 
-This repository treats the protocol contract as production-facing even before any adapter implementation exists.
+This repository treats the protocol contract and reference implementation as production-facing infrastructure.
 
 For ANCP itself, production quality means:
 
-- the normative spec, schema, taxonomies, examples, and adapter docs agree with each other,
+- the normative spec, schema, taxonomies, examples, adapter docs, and reference package agree with each other,
 - example protocol documents validate against the schema,
 - every claimed document kind and profile is documented,
 - repair plans include preconditions, effects, safety levels, and verification steps,
 - local source snapshots exist for the standards and language/toolchain docs used to design the contract,
-- verification can be rerun locally with deterministic scripts.
+- verification can be rerun locally with deterministic scripts,
+- normal compiler commands can be routed through local compiler-name shims without changing project build scripts.
 
 For an ANCP adapter, production quality means:
 

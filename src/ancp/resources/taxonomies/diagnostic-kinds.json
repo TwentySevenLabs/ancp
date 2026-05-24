@@ -1,0 +1,133 @@
+{
+  "ancpVersion": "1.0.0",
+  "taxonomyKind": "diagnostic-kinds",
+  "entries": [
+    {
+      "id": "syntax",
+      "title": "Syntax or parse error",
+      "description": "The source cannot be parsed according to the language grammar.",
+      "examples": ["Python SyntaxError", "Ruby ruby -c failure", "TypeScript parser diagnostic"]
+    },
+    {
+      "id": "symbol",
+      "title": "Symbol resolution error",
+      "description": "A name, symbol, member, field, function, variable, module item, or declaration cannot be resolved."
+    },
+    {
+      "id": "type",
+      "title": "Type error",
+      "description": "A value, expression, declaration, signature, assignment, or call violates the language type system."
+    },
+    {
+      "id": "module",
+      "title": "Module or package error",
+      "description": "A module, package, namespace, crate, assembly, or import unit cannot be loaded or compiled correctly."
+    },
+    {
+      "id": "import",
+      "title": "Import or include error",
+      "description": "An import, include, using directive, dependency path, or header cannot be resolved."
+    },
+    {
+      "id": "dependency",
+      "title": "Dependency error",
+      "description": "A package, crate, module, library, gem, wheel, jar, assembly, or version constraint is missing or invalid."
+    },
+    {
+      "id": "effect",
+      "title": "Effect declaration error",
+      "description": "Code performs an effect that is undeclared, unavailable, forbidden, or not permitted by policy."
+    },
+    {
+      "id": "permission",
+      "title": "Permission or capability error",
+      "description": "The tool or program lacks a required permission, capability, environment value, credential, or resource."
+    },
+    {
+      "id": "memory",
+      "title": "Memory safety or allocation error",
+      "description": "A diagnostic about memory safety, allocation, deallocation, bounds, aliasing, raw pointers, or unsafe memory use."
+    },
+    {
+      "id": "concurrency",
+      "title": "Concurrency error",
+      "description": "A diagnostic about threads, async tasks, data races, locks, channels, cancellation, atomics, or synchronization."
+    },
+    {
+      "id": "lifetime",
+      "title": "Lifetime error",
+      "description": "A diagnostic about lifetimes, scopes, escaping references, borrowed values, or temporal validity."
+    },
+    {
+      "id": "ownership",
+      "title": "Ownership or move error",
+      "description": "A diagnostic about ownership, moves, borrowing, aliasing, or resource ownership transfer."
+    },
+    {
+      "id": "trait",
+      "title": "Trait, protocol, or typeclass error",
+      "description": "A trait, protocol, interface constraint, extension, typeclass, or generic bound is not satisfied."
+    },
+    {
+      "id": "interface",
+      "title": "Interface or API contract error",
+      "description": "A class, struct, object, service, module, or function does not satisfy an expected interface or API contract."
+    },
+    {
+      "id": "contract",
+      "title": "Contract or invariant error",
+      "description": "A precondition, postcondition, invariant, assertion, schema, or refinement contract is violated."
+    },
+    {
+      "id": "lint",
+      "title": "Lint finding",
+      "description": "A linter, analyzer, style checker, or quality rule reported an issue."
+    },
+    {
+      "id": "format",
+      "title": "Formatting issue",
+      "description": "A formatter or style tool found that source formatting differs from project configuration."
+    },
+    {
+      "id": "test",
+      "title": "Test failure",
+      "description": "A unit, integration, property, snapshot, doctest, or project test failed."
+    },
+    {
+      "id": "build",
+      "title": "Build error",
+      "description": "A build, link, package, generated-code, build-script, or artifact production step failed."
+    },
+    {
+      "id": "runtime",
+      "title": "Runtime error",
+      "description": "A failure observed while executing code rather than statically checking it."
+    },
+    {
+      "id": "security",
+      "title": "Security finding",
+      "description": "A security analyzer, policy, dependency scanner, or compiler security check reported a risk."
+    },
+    {
+      "id": "performance",
+      "title": "Performance finding",
+      "description": "A diagnostic about performance, allocation, optimization, escape analysis, inlining, or inefficient code."
+    },
+    {
+      "id": "configuration",
+      "title": "Configuration error",
+      "description": "A tool, compiler, project, manifest, environment, plugin, or configuration file is invalid."
+    },
+    {
+      "id": "documentation",
+      "title": "Documentation issue",
+      "description": "A documentation comment, doc test, generated documentation, public API doc rule, or doc format issue."
+    },
+    {
+      "id": "unknown",
+      "title": "Unknown diagnostic kind",
+      "description": "The adapter cannot classify the diagnostic reliably."
+    }
+  ]
+}
+

@@ -1,6 +1,9 @@
-# Excluded folders and files (requested)
-/research/
+# Generated verification and downloaded source snapshots
 verification-report.json
+/.ancp/
+/research/source-docs/snapshots/
+/research/source-docs/fetch-report.json
+/research/source-docs/index.md
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -46,6 +49,8 @@ htmlcov/
 .pytest_cache/
 .cache
 .cache/
+.coverage
+coverage.xml
 .ipynb_checkpoints/
 .mypy_cache/
 .dmypy.json

@@ -1,0 +1,4 @@
+name: ancp_buggy_dart
+environment:
+  sdk: '^3.0.0'
+

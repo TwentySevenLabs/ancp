@@ -27,6 +27,11 @@ def rel(path: pathlib.Path) -> str:
     return str(path.relative_to(ROOT)).replace("\\", "/")
 
 
+def should_skip(path: pathlib.Path) -> bool:
+    ignored = {".git", ".ancp", "__pycache__", ".pytest_cache", ".mypy_cache", "dist", "build"}
+    return any(part in ignored or part.endswith(".egg-info") for part in path.parts)
+
+
 def load_json(path: pathlib.Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -35,7 +40,7 @@ def check_json_parse() -> Check:
     failures: list[str] = []
     count = 0
     for path in ROOT.rglob("*.json"):
-        if ".git" in path.parts:
+        if should_skip(path):
             continue
         count += 1
         try:
@@ -106,7 +111,7 @@ def check_markdown_links() -> Check:
     failures: list[str] = []
     count = 0
     for path in ROOT.rglob("*.md"):
-        if ".git" in path.parts or "source-docs/snapshots" in rel(path):
+        if should_skip(path) or "source-docs/snapshots" in rel(path):
             continue
         text = path.read_text(encoding="utf-8")
         for match in LOCAL_LINK_RE.finditer(text):
@@ -192,4 +197,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

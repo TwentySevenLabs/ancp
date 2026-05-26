@@ -15,40 +15,44 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 OUT = ROOT / ".ancp" / "bug-corpus"
 
 
+def ancp_command(*args: str) -> list[str]:
+    return [sys.executable, "-m", "ancp.cli", *args]
+
+
 CASES = [
-    ("python", ROOT / "examples/buggy/python", ["ancp", "check", "--workspace", ".", "--language", "python"]),
-    ("typescript", ROOT / "examples/buggy/typescript", ["ancp", "check", "--workspace", ".", "--language", "typescript"]),
-    ("rust", ROOT / "examples/buggy/rust", ["ancp", "check", "--workspace", ".", "--language", "rust"]),
-    ("go", ROOT / "examples/buggy/go", ["ancp", "check", "--workspace", ".", "--language", "go"]),
-    ("c-cpp-c", ROOT / "examples/buggy/c", ["ancp", "check", "--workspace", ".", "--language", "c-cpp"]),
-    ("c-cpp-cpp", ROOT / "examples/buggy/cpp", ["ancp", "check", "--workspace", ".", "--language", "c-cpp"]),
-    ("java", ROOT / "examples/buggy/java", ["ancp", "check", "--workspace", ".", "--language", "java"]),
-    ("kotlin", ROOT / "examples/buggy/kotlin", ["ancp", "check", "--workspace", ".", "--language", "kotlin"]),
-    ("julia", ROOT / "examples/buggy/julia", ["ancp", "check", "--workspace", ".", "--language", "julia"]),
-    ("csharp", ROOT / "examples/buggy/csharp", ["ancp", "check", "--workspace", ".", "--language", "csharp"]),
-    ("swift", ROOT / "examples/buggy/swift", ["ancp", "check", "--workspace", ".", "--language", "swift"]),
-    ("zig", ROOT / "examples/buggy/zig", ["ancp", "check", "--workspace", ".", "--language", "zig"]),
-    ("ruby", ROOT / "examples/buggy/ruby", ["ancp", "check", "--workspace", ".", "--language", "ruby"]),
-    ("php", ROOT / "examples/buggy/php", ["ancp", "check", "--workspace", ".", "--language", "php"]),
-    ("dart", ROOT / "examples/buggy/dart", ["ancp", "check", "--workspace", ".", "--language", "dart"]),
-    ("scala", ROOT / "examples/buggy/scala", ["ancp", "check", "--workspace", ".", "--language", "scala"]),
-    ("json", ROOT / "examples/buggy/json", ["ancp", "check", "--workspace", ".", "--language", "json"]),
-    ("toml", ROOT / "examples/buggy/toml", ["ancp", "check", "--workspace", ".", "--language", "toml"]),
-    ("yaml", ROOT / "examples/buggy/yaml", ["ancp", "check", "--workspace", ".", "--language", "yaml"]),
-    ("shell", ROOT / "examples/buggy/shell", ["ancp", "check", "--workspace", ".", "--language", "shell"]),
-    ("powershell", ROOT / "examples/buggy/powershell", ["ancp", "check", "--workspace", ".", "--language", "powershell"]),
-    ("lua", ROOT / "examples/buggy/lua", ["ancp", "check", "--workspace", ".", "--language", "lua"]),
-    ("perl", ROOT / "examples/buggy/perl", ["ancp", "check", "--workspace", ".", "--language", "perl"]),
-    ("r", ROOT / "examples/buggy/r", ["ancp", "check", "--workspace", ".", "--language", "r"]),
-    ("haskell", ROOT / "examples/buggy/haskell", ["ancp", "check", "--workspace", ".", "--language", "haskell"]),
-    ("ocaml", ROOT / "examples/buggy/ocaml", ["ancp", "check", "--workspace", ".", "--language", "ocaml"]),
-    ("erlang", ROOT / "examples/buggy/erlang", ["ancp", "check", "--workspace", ".", "--language", "erlang"]),
-    ("elixir", ROOT / "examples/buggy/elixir", ["ancp", "check", "--workspace", ".", "--language", "elixir"]),
-    ("clojure", ROOT / "examples/buggy/clojure", ["ancp", "check", "--workspace", ".", "--language", "clojure"]),
-    ("nix", ROOT / "examples/buggy/nix", ["ancp", "check", "--workspace", ".", "--language", "nix"]),
-    ("terraform", ROOT / "examples/buggy/terraform", ["ancp", "check", "--workspace", ".", "--language", "terraform"]),
-    ("dockerfile", ROOT / "examples/buggy/dockerfile", ["ancp", "check", "--workspace", ".", "--language", "dockerfile"]),
-    ("sql", ROOT / "examples/buggy/sql", ["ancp", "check", "--workspace", ".", "--language", "sql"]),
+    ("python", ROOT / "examples/buggy/python", ancp_command("check", "--workspace", ".", "--language", "python")),
+    ("typescript", ROOT / "examples/buggy/typescript", ancp_command("check", "--workspace", ".", "--language", "typescript")),
+    ("rust", ROOT / "examples/buggy/rust", ancp_command("check", "--workspace", ".", "--language", "rust")),
+    ("go", ROOT / "examples/buggy/go", ancp_command("check", "--workspace", ".", "--language", "go")),
+    ("c-cpp-c", ROOT / "examples/buggy/c", ancp_command("check", "--workspace", ".", "--language", "c-cpp")),
+    ("c-cpp-cpp", ROOT / "examples/buggy/cpp", ancp_command("check", "--workspace", ".", "--language", "c-cpp")),
+    ("java", ROOT / "examples/buggy/java", ancp_command("check", "--workspace", ".", "--language", "java")),
+    ("kotlin", ROOT / "examples/buggy/kotlin", ancp_command("check", "--workspace", ".", "--language", "kotlin")),
+    ("julia", ROOT / "examples/buggy/julia", ancp_command("check", "--workspace", ".", "--language", "julia")),
+    ("csharp", ROOT / "examples/buggy/csharp", ancp_command("check", "--workspace", ".", "--language", "csharp")),
+    ("swift", ROOT / "examples/buggy/swift", ancp_command("check", "--workspace", ".", "--language", "swift")),
+    ("zig", ROOT / "examples/buggy/zig", ancp_command("check", "--workspace", ".", "--language", "zig")),
+    ("ruby", ROOT / "examples/buggy/ruby", ancp_command("check", "--workspace", ".", "--language", "ruby")),
+    ("php", ROOT / "examples/buggy/php", ancp_command("check", "--workspace", ".", "--language", "php")),
+    ("dart", ROOT / "examples/buggy/dart", ancp_command("check", "--workspace", ".", "--language", "dart")),
+    ("scala", ROOT / "examples/buggy/scala", ancp_command("check", "--workspace", ".", "--language", "scala")),
+    ("json", ROOT / "examples/buggy/json", ancp_command("check", "--workspace", ".", "--language", "json")),
+    ("toml", ROOT / "examples/buggy/toml", ancp_command("check", "--workspace", ".", "--language", "toml")),
+    ("yaml", ROOT / "examples/buggy/yaml", ancp_command("check", "--workspace", ".", "--language", "yaml")),
+    ("shell", ROOT / "examples/buggy/shell", ancp_command("check", "--workspace", ".", "--language", "shell")),
+    ("powershell", ROOT / "examples/buggy/powershell", ancp_command("check", "--workspace", ".", "--language", "powershell")),
+    ("lua", ROOT / "examples/buggy/lua", ancp_command("check", "--workspace", ".", "--language", "lua")),
+    ("perl", ROOT / "examples/buggy/perl", ancp_command("check", "--workspace", ".", "--language", "perl")),
+    ("r", ROOT / "examples/buggy/r", ancp_command("check", "--workspace", ".", "--language", "r")),
+    ("haskell", ROOT / "examples/buggy/haskell", ancp_command("check", "--workspace", ".", "--language", "haskell")),
+    ("ocaml", ROOT / "examples/buggy/ocaml", ancp_command("check", "--workspace", ".", "--language", "ocaml")),
+    ("erlang", ROOT / "examples/buggy/erlang", ancp_command("check", "--workspace", ".", "--language", "erlang")),
+    ("elixir", ROOT / "examples/buggy/elixir", ancp_command("check", "--workspace", ".", "--language", "elixir")),
+    ("clojure", ROOT / "examples/buggy/clojure", ancp_command("check", "--workspace", ".", "--language", "clojure")),
+    ("nix", ROOT / "examples/buggy/nix", ancp_command("check", "--workspace", ".", "--language", "nix")),
+    ("terraform", ROOT / "examples/buggy/terraform", ancp_command("check", "--workspace", ".", "--language", "terraform")),
+    ("dockerfile", ROOT / "examples/buggy/dockerfile", ancp_command("check", "--workspace", ".", "--language", "dockerfile")),
+    ("sql", ROOT / "examples/buggy/sql", ancp_command("check", "--workspace", ".", "--language", "sql")),
 ]
 
 
@@ -63,7 +67,7 @@ def main() -> int:
         out_file = OUT / f"{name}.json"
         md_file = OUT / f"{name}.md"
         out_file.write_text(proc.stdout, encoding="utf-8")
-        render = subprocess.run(["ancp", "render", "--from", str(out_file)], cwd=str(ROOT), text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+        render = subprocess.run(ancp_command("render", "--from", str(out_file)), cwd=str(ROOT), text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
         md_file.write_text(render.stdout, encoding="utf-8")
         try:
             document = json.loads(proc.stdout)

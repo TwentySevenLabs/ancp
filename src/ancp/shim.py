@@ -16,7 +16,7 @@ from typing import Iterable
 
 from .proxy import proxy_document, write_proxy_output
 from .schema import validate_document
-from .util import find_workspace
+from .util import find_workspace, is_ancp_shim_path
 
 
 NATIVE_TO_ADAPTER = {
@@ -87,6 +87,8 @@ def find_real_executable(name: str, skip_dirs: Iterable[pathlib.Path]) -> str | 
         for candidate_name in names:
             candidate = directory / candidate_name
             if candidate.exists() and not candidate.is_dir():
+                if is_ancp_shim_path(candidate):
+                    continue
                 candidates.append(str(candidate))
     return candidates[0] if candidates else shutil.which(name)
 

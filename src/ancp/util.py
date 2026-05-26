@@ -66,7 +66,34 @@ def sha256_file(path: pathlib.Path) -> str | None:
 
 
 def find_executable(name: str) -> str | None:
-    return shutil.which(name)
+    if not name:
+        return None
+    candidate = pathlib.Path(name)
+    if candidate.parent != pathlib.Path("."):
+        return str(candidate) if candidate.exists() and not is_ancp_shim_path(candidate) else None
+    path_exts = [""]
+    if os.name == "nt":
+        path_exts = os.environ.get("PATHEXT", ".COM;.EXE;.BAT;.CMD").split(";")
+    names = [name] if os.name != "nt" else [name + ext.lower() for ext in path_exts] + [name + ext.upper() for ext in path_exts]
+    for path_text in os.environ.get("PATH", "").split(os.pathsep):
+        if not path_text:
+            continue
+        directory = pathlib.Path(path_text)
+        for candidate_name in names:
+            candidate_path = directory / candidate_name
+            if candidate_path.exists() and not candidate_path.is_dir() and not is_ancp_shim_path(candidate_path):
+                return str(candidate_path)
+    return None
+
+
+def is_ancp_shim_path(path: pathlib.Path) -> bool:
+    if path.suffix.lower() in {".exe", ".com"}:
+        return False
+    try:
+        text = path.read_text(encoding="utf-8", errors="ignore")[:4096]
+    except OSError:
+        return False
+    return "-m ancp.shim" in text
 
 
 def find_workspace(start: pathlib.Path | None = None) -> pathlib.Path:
@@ -138,7 +165,7 @@ class CommandResult:
 def run_command(argv: list[str], cwd: pathlib.Path, timeout: int = 60) -> CommandResult:
     started = _dt.datetime.now(_dt.timezone.utc)
     started_text = started.replace(microsecond=0).isoformat().replace("+00:00", "Z")
-    resolved_executable = shutil.which(argv[0]) if argv else None
+    resolved_executable = find_executable(argv[0]) if argv else None
     if not argv or not resolved_executable:
         ended = _dt.datetime.now(_dt.timezone.utc)
         return CommandResult(

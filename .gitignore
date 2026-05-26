@@ -1,6 +1,7 @@
 # Generated verification and downloaded source snapshots
 verification-report.json
 /.ancp/
+**/.ancp/
 /research/source-docs/snapshots/
 /research/source-docs/fetch-report.json
 /research/source-docs/index.md

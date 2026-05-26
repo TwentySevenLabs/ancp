@@ -1,0 +1,5 @@
+name: broken-yaml
+items:
+  - one
+  - two
+    nested: bad

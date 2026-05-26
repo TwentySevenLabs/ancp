@@ -57,6 +57,23 @@ REQUIRED_LANGUAGES = [
     "dart",
     "scala",
     "julia",
+    "json",
+    "toml",
+    "yaml",
+    "shell",
+    "powershell",
+    "lua",
+    "perl",
+    "r",
+    "haskell",
+    "ocaml",
+    "erlang",
+    "elixir",
+    "clojure",
+    "nix",
+    "terraform",
+    "dockerfile",
+    "sql",
 ]
 
 REQUIRED_DOCS = [
@@ -83,6 +100,8 @@ def pass_check(message: str) -> None:
 def example_doc_kinds() -> set[str]:
     kinds: set[str] = set()
     for path in (ROOT / "examples").rglob("*.json"):
+        if "buggy" in path.parts:
+            continue
         doc = json.loads(path.read_text(encoding="utf-8"))
         kinds.add(doc["documentKind"])
     return kinds

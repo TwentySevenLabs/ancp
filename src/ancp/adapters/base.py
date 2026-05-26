@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import pathlib
 import tempfile
 from dataclasses import dataclass
@@ -22,7 +23,7 @@ from ancp.native import (
     parse_rust_json_lines,
     parse_text_lines,
 )
-from ancp.util import CommandResult, command_run_object, find_executable, list_files, run_command
+from ancp.util import CommandResult, command_run_object, find_executable, list_files, run_command, utc_now
 
 
 @dataclass(frozen=True)
@@ -182,6 +183,67 @@ class Adapter:
                 ],
             }
         ]
+
+
+class InternalSyntaxAdapter(Adapter):
+    """Adapter base for syntax checks implemented inside ANCP."""
+
+    tool_name = "ancp-internal"
+
+    def available_tool(self) -> ToolSpec | None:
+        return ToolSpec(self.tool_name, "compiler", ["ancp", "internal-check", self.key], transport="api", version_args=["ancp", "--version"])
+
+    def toolchain_entries(self) -> list[dict[str, Any]]:
+        return [{"name": self.tool_name, "role": "compiler", "command": ["ancp", "internal-check", self.key], "transport": "api"}]
+
+    def check(self, root: pathlib.Path, timeout: int = 60) -> dict[str, Any]:
+        started = utc_now()
+        diagnostics = self.parse_internal(root)
+        result = CommandResult(
+            argv=["ancp", "internal-check", self.key],
+            cwd=root,
+            started_at=started,
+            ended_at=utc_now(),
+            duration_ms=0,
+            exit_code=1 if diagnostics else 0,
+            stdout="",
+            stderr="",
+        )
+        document = doc.envelope("result.check", f"ancp-{self.key}-adapter")
+        document.update(
+            {
+                "status": "failed" if diagnostics else "passed",
+                "workspace": doc.workspace_object(root),
+                "run": command_run_object(result),
+                "toolchain": self.toolchain_entries(),
+                "diagnostics": diagnostics,
+            }
+        )
+        return document
+
+    def parse_internal(self, root: pathlib.Path) -> list[dict[str, Any]]:
+        return []
+
+    def internal_diagnostic(
+        self,
+        index: int,
+        path: pathlib.Path,
+        native_code: str,
+        message: str,
+        line: int = 0,
+        col: int = 0,
+    ) -> dict[str, Any]:
+        return doc.diagnostic(
+            f"diag-{self.key}-{index:04d}",
+            "ancp.diag.syntax.invalid",
+            native_code,
+            "error",
+            "syntax",
+            message,
+            doc.location(path, self.language_id, line, col, line, col + 1),
+            self.tool_name,
+            [doc.repair_hint("ancp.repair.syntax.insert_token", f"Fix {self.display_name} syntax", 0.4)],
+        )
 
 
 class TypeScriptAdapter(Adapter):
@@ -621,3 +683,586 @@ class JuliaAdapter(Adapter):
                 {"stderrSummary": text[-2000:]},
             )
         ]
+
+
+class JsonAdapter(InternalSyntaxAdapter):
+    key = "json"
+    language_id = "json"
+    display_name = "JSON"
+    file_extensions = {".json", ".jsonc"}
+    markers = {"package.json", "tsconfig.json", "composer.json"}
+    tool_name = "python-json"
+
+    def parse_internal(self, root: pathlib.Path) -> list[dict[str, Any]]:
+        diagnostics: list[dict[str, Any]] = []
+        for path in list_files(root, self.file_extensions, limit=200):
+            try:
+                json.loads(path.read_text(encoding="utf-8-sig"))
+            except json.JSONDecodeError as exc:
+                diagnostics.append(self.internal_diagnostic(len(diagnostics) + 1, path, "JSONDecodeError", exc.msg, exc.lineno - 1, exc.colno - 1))
+            except UnicodeDecodeError as exc:
+                diagnostics.append(self.internal_diagnostic(len(diagnostics) + 1, path, "UnicodeDecodeError", str(exc), 0, 0))
+        return diagnostics
+
+
+class TomlAdapter(InternalSyntaxAdapter):
+    key = "toml"
+    language_id = "toml"
+    display_name = "TOML"
+    file_extensions = {".toml"}
+    markers = {"pyproject.toml", "Cargo.toml", "Project.toml"}
+    tool_name = "python-tomllib"
+
+    def parse_internal(self, root: pathlib.Path) -> list[dict[str, Any]]:
+        import tomllib
+
+        diagnostics: list[dict[str, Any]] = []
+        for path in list_files(root, self.file_extensions, limit=200):
+            try:
+                tomllib.loads(path.read_text(encoding="utf-8"))
+            except tomllib.TOMLDecodeError as exc:
+                line = max(int(getattr(exc, "lineno", 1) or 1) - 1, 0)
+                col = max(int(getattr(exc, "colno", 1) or 1) - 1, 0)
+                diagnostics.append(self.internal_diagnostic(len(diagnostics) + 1, path, "TOMLDecodeError", str(exc).splitlines()[0], line, col))
+            except UnicodeDecodeError as exc:
+                diagnostics.append(self.internal_diagnostic(len(diagnostics) + 1, path, "UnicodeDecodeError", str(exc), 0, 0))
+        return diagnostics
+
+
+class YamlAdapter(InternalSyntaxAdapter):
+    key = "yaml"
+    language_id = "yaml"
+    display_name = "YAML"
+    file_extensions = {".yaml", ".yml"}
+    markers = {".github", "docker-compose.yml", "docker-compose.yaml"}
+    tool_name = "pyyaml"
+
+    def parse_internal(self, root: pathlib.Path) -> list[dict[str, Any]]:
+        import yaml
+
+        diagnostics: list[dict[str, Any]] = []
+        for path in list_files(root, self.file_extensions, limit=200):
+            try:
+                list(yaml.safe_load_all(path.read_text(encoding="utf-8")))
+            except yaml.YAMLError as exc:
+                mark = getattr(exc, "problem_mark", None)
+                line = int(getattr(mark, "line", 0) or 0)
+                col = int(getattr(mark, "column", 0) or 0)
+                message = getattr(exc, "problem", None) or str(exc).splitlines()[0]
+                diagnostics.append(self.internal_diagnostic(len(diagnostics) + 1, path, exc.__class__.__name__, message, line, col))
+            except UnicodeDecodeError as exc:
+                diagnostics.append(self.internal_diagnostic(len(diagnostics) + 1, path, "UnicodeDecodeError", str(exc), 0, 0))
+        return diagnostics
+
+
+class ShellAdapter(Adapter):
+    key = "shell"
+    language_id = "shellscript"
+    display_name = "Shell"
+    file_extensions = {".sh", ".bash", ".zsh", ".ksh"}
+    markers = {".shellcheckrc"}
+    tools = [
+        ToolSpec("shellcheck", "linter", ["shellcheck", "--format=json", "."]),
+        ToolSpec("bash", "compiler", ["bash", "-n"]),
+    ]
+
+    def run_check(self, root: pathlib.Path, tool: ToolSpec, timeout: int) -> CommandResult:
+        files = list_files(root, self.file_extensions, limit=100)
+        if not files:
+            return run_command([tool.command[0], "--version"], root, timeout=timeout)
+        if tool.name == "shellcheck":
+            return run_command(["shellcheck", "--format=json", *[str(path) for path in files]], root, timeout=timeout)
+        stdout: list[str] = []
+        stderr: list[str] = []
+        last: CommandResult | None = None
+        for path in files:
+            last = run_command(["bash", "-n", str(path)], root, timeout=timeout)
+            stdout.append(last.stdout)
+            stderr.append(last.stderr)
+            if last.exit_code not in (0, None):
+                break
+        assert last is not None
+        return CommandResult(last.argv, root, last.started_at, last.ended_at, last.duration_ms, last.exit_code, "\n".join(stdout), "\n".join(stderr))
+
+    def parse_result(self, root: pathlib.Path, result: CommandResult, tool: ToolSpec) -> list[dict[str, Any]]:
+        if tool.name == "shellcheck":
+            try:
+                payload = json.loads(result.stdout)
+            except json.JSONDecodeError:
+                payload = {}
+            diagnostics = []
+            for index, item in enumerate(payload.get("comments", []), start=1):
+                path = pathlib.Path(item.get("file") or root)
+                if not path.is_absolute():
+                    path = root / path
+                code = f"SC{item.get('code')}" if item.get("code") else None
+                message = item.get("message", "")
+                canonical, kind, hints = canonical_for_native(code, message, "ancp.diag.lint.rule_violation")
+                diagnostics.append(
+                    doc.diagnostic(
+                        f"diag-shellcheck-{index:04d}",
+                        canonical,
+                        code,
+                        "error" if item.get("level") == "error" else "warning",
+                        "lint" if canonical == "ancp.diag.lint.rule_violation" else kind,
+                        message,
+                        doc.location(path, "shellscript", int(item.get("line", 1)) - 1, int(item.get("column", 1)) - 1),
+                        "shellcheck",
+                        hints,
+                        {"native": item},
+                    )
+                )
+            return diagnostics
+        regex = __import__("re").compile(r"^(?P<file>.+?):\s+line\s+(?P<line>\d+):\s+(?P<message>.+)$")
+        return parse_text_lines(result.stderr + "\n" + result.stdout, regex, root, "shellscript", "bash", "diag-shell")
+
+
+class PowerShellAdapter(Adapter):
+    key = "powershell"
+    language_id = "powershell"
+    display_name = "PowerShell"
+    file_extensions = {".ps1", ".psm1", ".psd1"}
+    markers = {"PSScriptAnalyzerSettings.psd1"}
+    tools = [
+        ToolSpec("pwsh", "compiler", ["pwsh", "-NoProfile"], version_args=["pwsh", "-NoProfile", "-Command", "$PSVersionTable.PSVersion.ToString()"]),
+        ToolSpec("powershell", "compiler", ["powershell", "-NoProfile"], version_args=["powershell", "-NoProfile", "-Command", "$PSVersionTable.PSVersion.ToString()"]),
+    ]
+
+    def run_check(self, root: pathlib.Path, tool: ToolSpec, timeout: int) -> CommandResult:
+        root_literal = "'" + str(root).replace("'", "''") + "'"
+        program = (
+            f"$root={root_literal};"
+            "$items=Get-ChildItem -LiteralPath $root -Recurse -Include *.ps1,*.psm1,*.psd1 -File;"
+            "$out=@();"
+            "foreach($item in $items){"
+            "$tokens=$null;$errors=$null;"
+            "[System.Management.Automation.Language.Parser]::ParseFile($item.FullName,[ref]$tokens,[ref]$errors)|Out-Null;"
+            "foreach($err in $errors){$out += [pscustomobject]@{file=$item.FullName;line=$err.Extent.StartLineNumber;col=$err.Extent.StartColumnNumber;message=$err.Message;code=$err.ErrorId}}"
+            "};"
+            "$out|ConvertTo-Json -Depth 4 -Compress"
+        )
+        return run_command([tool.command[0], "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", program], root, timeout=timeout)
+
+    def parse_result(self, root: pathlib.Path, result: CommandResult, tool: ToolSpec) -> list[dict[str, Any]]:
+        text = (result.stdout or "").strip()
+        combined_text = result.stderr + "\n" + result.stdout
+        if not text:
+            return self._parse_native_text(root, combined_text, tool.name)
+        try:
+            payload = json.loads(text)
+        except json.JSONDecodeError:
+            return self._parse_native_text(root, combined_text, tool.name)
+        items = payload if isinstance(payload, list) else [payload]
+        diagnostics = []
+        for index, item in enumerate(items[:10], start=1):
+            path = pathlib.Path(item.get("file") or root)
+            message = item.get("message", "PowerShell parse error")
+            code = item.get("code")
+            canonical, kind, hints = canonical_for_native(code, message)
+            diagnostics.append(
+                doc.diagnostic(
+                    f"diag-powershell-{index:04d}",
+                    canonical,
+                    code,
+                    "error",
+                    kind,
+                    message,
+                    doc.location(path, "powershell", int(item.get("line", 1)) - 1, int(item.get("col", 1)) - 1),
+                    tool.name,
+                    hints,
+                    {"native": item},
+                )
+            )
+        return diagnostics
+
+    def _parse_native_text(self, root: pathlib.Path, text: str, source: str) -> list[dict[str, Any]]:
+        import re
+
+        diagnostics: list[dict[str, Any]] = []
+        pattern = re.compile(r"^At (?P<file>.+?):(?P<line>\d+) char:(?P<col>\d+)$")
+        lines = text.splitlines()
+        for index, line in enumerate(lines):
+            match = pattern.match(line.strip())
+            if not match:
+                continue
+            message = "PowerShell parse error"
+            for candidate in lines[index + 1 : index + 6]:
+                stripped = candidate.strip()
+                if stripped and not stripped.startswith("+") and not set(stripped) <= {"~"}:
+                    message = stripped
+                    break
+            code = None
+            for candidate in lines[index + 1 : index + 12]:
+                if "FullyQualifiedErrorId" in candidate:
+                    code = candidate.split(":", 1)[-1].strip()
+                    break
+            path = pathlib.Path(match.group("file"))
+            canonical, kind, hints = canonical_for_native(code, message)
+            diagnostics.append(
+                doc.diagnostic(
+                    f"diag-powershell-{len(diagnostics) + 1:04d}",
+                    canonical,
+                    code,
+                    "error",
+                    kind,
+                    message,
+                    doc.location(path, "powershell", int(match.group("line")) - 1, int(match.group("col")) - 1),
+                    source,
+                    hints,
+                    {"raw": "\n".join(lines[index : index + 8])},
+                )
+            )
+        return diagnostics
+
+
+class LuaAdapter(Adapter):
+    key = "lua"
+    language_id = "lua"
+    display_name = "Lua"
+    file_extensions = {".lua"}
+    markers = {".luacheckrc"}
+    tools = [ToolSpec("luac", "compiler", ["luac", "-p"]), ToolSpec("lua", "compiler", ["lua", "-e", ""])]
+
+    def run_check(self, root: pathlib.Path, tool: ToolSpec, timeout: int) -> CommandResult:
+        files = list_files(root, self.file_extensions, limit=100)
+        if not files:
+            return run_command([tool.command[0], "-v"], root, timeout=timeout)
+        checker = "luac" if tool.name == "luac" else "lua"
+        stdout: list[str] = []
+        stderr: list[str] = []
+        last: CommandResult | None = None
+        for path in files:
+            argv = ["luac", "-p", str(path)] if checker == "luac" else ["lua", "-e", f"assert(loadfile([[{path}]]))"]
+            last = run_command(argv, root, timeout=timeout)
+            stdout.append(last.stdout)
+            stderr.append(last.stderr)
+            if last.exit_code not in (0, None):
+                break
+        assert last is not None
+        return CommandResult(last.argv, root, last.started_at, last.ended_at, last.duration_ms, last.exit_code, "\n".join(stdout), "\n".join(stderr))
+
+    def parse_result(self, root: pathlib.Path, result: CommandResult, tool: ToolSpec) -> list[dict[str, Any]]:
+        regex = __import__("re").compile(r"^(?:luac:\s+)?(?P<file>.+?):(?P<line>\d+):\s+(?P<message>.+)$")
+        return parse_text_lines(result.stderr + "\n" + result.stdout, regex, root, "lua", tool.name, "diag-lua")
+
+
+class PerlAdapter(Adapter):
+    key = "perl"
+    language_id = "perl"
+    display_name = "Perl"
+    file_extensions = {".pl", ".pm", ".t"}
+    markers = {"cpanfile", "Makefile.PL"}
+    tools = [ToolSpec("perl", "compiler", ["perl", "-c"])]
+
+    def run_check(self, root: pathlib.Path, tool: ToolSpec, timeout: int) -> CommandResult:
+        files = list_files(root, self.file_extensions, limit=100)
+        if not files:
+            return run_command(["perl", "-v"], root, timeout=timeout)
+        outputs: list[str] = []
+        errors: list[str] = []
+        last: CommandResult | None = None
+        for path in files:
+            last = run_command(["perl", "-c", str(path)], root, timeout=timeout)
+            outputs.append(last.stdout)
+            errors.append(last.stderr)
+            if last.exit_code not in (0, None):
+                break
+        assert last is not None
+        return CommandResult(last.argv, root, last.started_at, last.ended_at, last.duration_ms, last.exit_code, "\n".join(outputs), "\n".join(errors))
+
+    def parse_result(self, root: pathlib.Path, result: CommandResult, tool: ToolSpec) -> list[dict[str, Any]]:
+        regex = __import__("re").compile(r"^(?P<message>.+?)\s+at\s+(?P<file>.+?)\s+line\s+(?P<line>\d+)")
+        return parse_text_lines(result.stderr + "\n" + result.stdout, regex, root, "perl", "perl", "diag-perl")
+
+
+class RAdapter(Adapter):
+    key = "r"
+    language_id = "r"
+    display_name = "R"
+    file_extensions = {".r", ".R"}
+    markers = {"DESCRIPTION", "renv.lock"}
+    tools = [ToolSpec("Rscript", "compiler", ["Rscript", "--vanilla"])]
+
+    def run_check(self, root: pathlib.Path, tool: ToolSpec, timeout: int) -> CommandResult:
+        files = list_files(root, self.file_extensions, limit=100)
+        if not files:
+            return run_command(["Rscript", "--version"], root, timeout=timeout)
+        program = "for (f in commandArgs(TRUE)) parse(file=f)"
+        return run_command(["Rscript", "--vanilla", "-e", program, *[str(path) for path in files]], root, timeout=timeout)
+
+    def parse_result(self, root: pathlib.Path, result: CommandResult, tool: ToolSpec) -> list[dict[str, Any]]:
+        regex = __import__("re").compile(r"^(?P<file>.+?):(?P<line>\d+):(?P<col>\d+):\s*(?P<message>.+)$")
+        return parse_text_lines(result.stderr + "\n" + result.stdout, regex, root, "r", "Rscript", "diag-r")
+
+
+class HaskellAdapter(Adapter):
+    key = "haskell"
+    language_id = "haskell"
+    display_name = "Haskell"
+    file_extensions = {".hs", ".lhs"}
+    markers = {"stack.yaml", "cabal.project"}
+    tools = [ToolSpec("ghc", "compiler", ["ghc", "-fno-code"])]
+
+    def run_check(self, root: pathlib.Path, tool: ToolSpec, timeout: int) -> CommandResult:
+        files = list_files(root, self.file_extensions, limit=100)
+        if not files:
+            return run_command(["ghc", "--version"], root, timeout=timeout)
+        return run_command(["ghc", "-fno-code", *[str(path) for path in files]], root, timeout=timeout)
+
+    def parse_result(self, root: pathlib.Path, result: CommandResult, tool: ToolSpec) -> list[dict[str, Any]]:
+        regex = __import__("re").compile(r"^(?P<file>.+?):(?P<line>\d+):(?P<col>\d+):\s+(?P<severity>error|warning):\s+(?P<message>.+)$", __import__("re").IGNORECASE)
+        return parse_text_lines(result.stderr + "\n" + result.stdout, regex, root, "haskell", "ghc", "diag-haskell")
+
+
+class OcamlAdapter(Adapter):
+    key = "ocaml"
+    language_id = "ocaml"
+    display_name = "OCaml"
+    file_extensions = {".ml", ".mli"}
+    markers = {"dune-project", "dune"}
+    tools = [ToolSpec("ocamlc", "compiler", ["ocamlc", "-c"])]
+
+    def run_check(self, root: pathlib.Path, tool: ToolSpec, timeout: int) -> CommandResult:
+        files = list_files(root, self.file_extensions, limit=100)
+        if not files:
+            return run_command(["ocamlc", "-version"], root, timeout=timeout)
+        return run_command(["ocamlc", "-c", *[str(path) for path in files]], root, timeout=timeout)
+
+    def parse_result(self, root: pathlib.Path, result: CommandResult, tool: ToolSpec) -> list[dict[str, Any]]:
+        regex = __import__("re").compile(r'^File "(?P<file>.+?)", line (?P<line>\d+), characters (?P<col>\d+)-\d+:\s*(?P<message>.+)$')
+        return parse_text_lines(result.stderr + "\n" + result.stdout, regex, root, "ocaml", "ocamlc", "diag-ocaml")
+
+
+class ErlangAdapter(Adapter):
+    key = "erlang"
+    language_id = "erlang"
+    display_name = "Erlang"
+    file_extensions = {".erl", ".hrl"}
+    markers = {"rebar.config"}
+    tools = [ToolSpec("erlc", "compiler", ["erlc"])]
+
+    def run_check(self, root: pathlib.Path, tool: ToolSpec, timeout: int) -> CommandResult:
+        files = [path for path in list_files(root, self.file_extensions, limit=100) if path.suffix.lower() == ".erl"]
+        if not files:
+            return run_command(["erlc", "-v"], root, timeout=timeout)
+        out_dir = pathlib.Path(tempfile.mkdtemp(prefix="ancp-erlc-"))
+        return run_command(["erlc", "-o", str(out_dir), *[str(path) for path in files]], root, timeout=timeout)
+
+    def parse_result(self, root: pathlib.Path, result: CommandResult, tool: ToolSpec) -> list[dict[str, Any]]:
+        regex = __import__("re").compile(r"^(?P<file>.+?):(?P<line>\d+):(?P<col>\d+)?:?\s*(?P<message>.+)$")
+        return parse_text_lines(result.stderr + "\n" + result.stdout, regex, root, "erlang", "erlc", "diag-erlang")
+
+
+class ElixirAdapter(Adapter):
+    key = "elixir"
+    language_id = "elixir"
+    display_name = "Elixir"
+    file_extensions = {".ex", ".exs"}
+    markers = {"mix.exs"}
+    tools = [ToolSpec("elixirc", "compiler", ["elixirc"])]
+
+    def run_check(self, root: pathlib.Path, tool: ToolSpec, timeout: int) -> CommandResult:
+        files = list_files(root, self.file_extensions, limit=100)
+        if not files:
+            return run_command(["elixirc", "--version"], root, timeout=timeout)
+        out_dir = pathlib.Path(tempfile.mkdtemp(prefix="ancp-elixirc-"))
+        return run_command(["elixirc", "-o", str(out_dir), *[str(path) for path in files]], root, timeout=timeout)
+
+    def parse_result(self, root: pathlib.Path, result: CommandResult, tool: ToolSpec) -> list[dict[str, Any]]:
+        regex = __import__("re").compile(r"^\*\* \((?P<code>.+?)\)\s+(?P<file>.+?):(?P<line>\d+):(?P<col>\d+)?:?\s*(?P<message>.+)$")
+        return parse_text_lines(result.stderr + "\n" + result.stdout, regex, root, "elixir", "elixirc", "diag-elixir")
+
+
+class ClojureAdapter(Adapter):
+    key = "clojure"
+    language_id = "clojure"
+    display_name = "Clojure"
+    file_extensions = {".clj", ".cljs", ".cljc", ".edn"}
+    markers = {"deps.edn", "project.clj", ".clj-kondo"}
+    tools = [ToolSpec("clj-kondo", "linter", ["clj-kondo", "--lint", ".", "--config", "{:output {:format :json}}"])]
+
+    def parse_result(self, root: pathlib.Path, result: CommandResult, tool: ToolSpec) -> list[dict[str, Any]]:
+        try:
+            payload = json.loads(result.stdout)
+        except json.JSONDecodeError:
+            return []
+        diagnostics = []
+        for index, item in enumerate(payload.get("findings", []), start=1):
+            path = pathlib.Path(item.get("filename") or root)
+            if not path.is_absolute():
+                path = root / path
+            message = item.get("message", "")
+            native_code = item.get("type")
+            canonical, kind, hints = canonical_for_native(native_code, message, "ancp.diag.lint.rule_violation")
+            diagnostics.append(
+                doc.diagnostic(
+                    f"diag-clj-kondo-{index:04d}",
+                    canonical,
+                    native_code,
+                    "error" if item.get("level") == "error" else "warning",
+                    "lint" if canonical == "ancp.diag.lint.rule_violation" else kind,
+                    message,
+                    doc.location(path, "clojure", int(item.get("row", 1)) - 1, int(item.get("col", 1)) - 1),
+                    "clj-kondo",
+                    hints,
+                    {"native": item},
+                )
+            )
+        return diagnostics
+
+
+class NixAdapter(Adapter):
+    key = "nix"
+    language_id = "nix"
+    display_name = "Nix"
+    file_extensions = {".nix"}
+    markers = {"flake.nix"}
+    tools = [ToolSpec("nix-instantiate", "compiler", ["nix-instantiate", "--parse"])]
+
+    def run_check(self, root: pathlib.Path, tool: ToolSpec, timeout: int) -> CommandResult:
+        files = list_files(root, self.file_extensions, limit=100)
+        if not files:
+            return run_command(["nix-instantiate", "--version"], root, timeout=timeout)
+        stdout: list[str] = []
+        stderr: list[str] = []
+        last: CommandResult | None = None
+        for path in files:
+            last = run_command(["nix-instantiate", "--parse", str(path)], root, timeout=timeout)
+            stdout.append(last.stdout)
+            stderr.append(last.stderr)
+            if last.exit_code not in (0, None):
+                break
+        assert last is not None
+        return CommandResult(last.argv, root, last.started_at, last.ended_at, last.duration_ms, last.exit_code, "\n".join(stdout), "\n".join(stderr))
+
+    def parse_result(self, root: pathlib.Path, result: CommandResult, tool: ToolSpec) -> list[dict[str, Any]]:
+        regex = __import__("re").compile(r"^\s*at\s+(?P<file>.+?):(?P<line>\d+):(?P<col>\d+):\s*(?P<message>.+)$")
+        return parse_text_lines(result.stderr + "\n" + result.stdout, regex, root, "nix", "nix-instantiate", "diag-nix")
+
+
+class TerraformAdapter(Adapter):
+    key = "terraform"
+    language_id = "terraform"
+    display_name = "Terraform"
+    file_extensions = {".tf", ".tfvars"}
+    markers = {".terraform.lock.hcl"}
+    tools = [ToolSpec("terraform", "build", ["terraform", "validate", "-json"])]
+
+    def parse_result(self, root: pathlib.Path, result: CommandResult, tool: ToolSpec) -> list[dict[str, Any]]:
+        try:
+            payload = json.loads(result.stdout)
+        except json.JSONDecodeError:
+            return []
+        diagnostics = []
+        for index, item in enumerate(payload.get("diagnostics", []), start=1):
+            rng = item.get("range") or {}
+            filename = rng.get("filename") or root
+            path = pathlib.Path(filename)
+            if not path.is_absolute():
+                path = root / path
+            start = rng.get("start") or {}
+            message = item.get("detail") or item.get("summary") or "Terraform diagnostic"
+            native_code = item.get("summary")
+            canonical, kind, hints = canonical_for_native(native_code, message, "ancp.diag.configuration.invalid")
+            diagnostics.append(
+                doc.diagnostic(
+                    f"diag-terraform-{index:04d}",
+                    canonical,
+                    native_code,
+                    "warning" if item.get("severity") == "warning" else "error",
+                    "configuration" if kind == "unknown" else kind,
+                    message,
+                    doc.location(path, "terraform", int(start.get("line", 1)) - 1, int(start.get("column", 1)) - 1),
+                    "terraform",
+                    hints,
+                    {"native": item},
+                )
+            )
+        return diagnostics
+
+
+class DockerfileAdapter(Adapter):
+    key = "dockerfile"
+    language_id = "dockerfile"
+    display_name = "Dockerfile"
+    file_extensions: set[str] = set()
+    markers = {"Dockerfile", ".hadolint.yaml"}
+    tools = [ToolSpec("hadolint", "linter", ["hadolint", "--format", "json", "Dockerfile"])]
+
+    def matches(self, root: pathlib.Path) -> bool:
+        ignored = {".git", ".ancp", "node_modules", "dist", "build", "__pycache__", ".pytest_cache"}
+        for current, dirs, files in __import__("os").walk(root):
+            dirs[:] = [item for item in dirs if item not in ignored]
+            if any(name == "Dockerfile" or name.endswith(".Dockerfile") for name in files):
+                return True
+        return False
+
+    def parse_result(self, root: pathlib.Path, result: CommandResult, tool: ToolSpec) -> list[dict[str, Any]]:
+        try:
+            payload = json.loads(result.stdout)
+        except json.JSONDecodeError:
+            return []
+        diagnostics = []
+        for index, item in enumerate(payload if isinstance(payload, list) else [], start=1):
+            path = pathlib.Path(item.get("file") or root / "Dockerfile")
+            if not path.is_absolute():
+                path = root / path
+            code = item.get("code")
+            message = item.get("message", "")
+            canonical, kind, hints = canonical_for_native(code, message, "ancp.diag.lint.rule_violation")
+            diagnostics.append(
+                doc.diagnostic(
+                    f"diag-hadolint-{index:04d}",
+                    canonical,
+                    code,
+                    "error" if item.get("level") == "error" else "warning",
+                    "lint" if canonical == "ancp.diag.lint.rule_violation" else kind,
+                    message,
+                    doc.location(path, "dockerfile", int(item.get("line", 1)) - 1, int(item.get("column", 1)) - 1),
+                    "hadolint",
+                    hints,
+                    {"native": item},
+                )
+            )
+        return diagnostics
+
+
+class SqlAdapter(Adapter):
+    key = "sql"
+    language_id = "sql"
+    display_name = "SQL"
+    file_extensions = {".sql"}
+    markers = {".sqlfluff", ".sqlfluffignore"}
+    tools = [ToolSpec("sqlfluff", "linter", ["sqlfluff", "lint", "--format", "json", "."])]
+
+    def parse_result(self, root: pathlib.Path, result: CommandResult, tool: ToolSpec) -> list[dict[str, Any]]:
+        try:
+            payload = json.loads(result.stdout)
+        except json.JSONDecodeError:
+            return []
+        diagnostics = []
+        counter = 0
+        for file_item in payload if isinstance(payload, list) else []:
+            path = pathlib.Path(file_item.get("filepath") or root)
+            if not path.is_absolute():
+                path = root / path
+            for violation in file_item.get("violations", []):
+                counter += 1
+                code = violation.get("code")
+                message = violation.get("description", "")
+                canonical, kind, hints = canonical_for_native(code, message, "ancp.diag.lint.rule_violation")
+                diagnostics.append(
+                    doc.diagnostic(
+                        f"diag-sqlfluff-{counter:04d}",
+                        canonical,
+                        code,
+                        "warning",
+                        "lint" if canonical == "ancp.diag.lint.rule_violation" else kind,
+                        message,
+                        doc.location(path, "sql", int(violation.get("start_line_no", 1)) - 1, int(violation.get("start_line_pos", 1)) - 1),
+                        "sqlfluff",
+                        hints,
+                        {"native": violation},
+                    )
+                )
+        return diagnostics

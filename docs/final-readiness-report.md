@@ -13,9 +13,9 @@ ANCP now contains:
 - diagnostic, repair, and effect taxonomies,
 - a Python package named `ancp`,
 - the `ancp` CLI,
-- prefixed compiler proxies such as `ancp-cargo`, `ancp-tsc`, `ancp-python`, `ancp-kotlinc`, and `ancp-julia`,
+- prefixed compiler proxies such as `ancp-cargo`, `ancp-tsc`, `ancp-python`, `ancp-kotlinc`, `ancp-julia`, `ancp-pwsh`, `ancp-terraform`, and `ancp-sqlfluff`,
 - native-name compiler shims installed with `ancp install-shims`,
-- adapters for Python, TypeScript, JavaScript, Rust, Go, C/C++, Java, Kotlin, C#/.NET, Swift, Zig, Ruby, PHP, Dart, Scala, and Julia,
+- adapters for Python, TypeScript, JavaScript, Rust, Go, C/C++, Java, Kotlin, C#/.NET, Swift, Zig, Ruby, PHP, Dart, Scala, Julia, Shell, PowerShell, Lua, Perl, R, Haskell, OCaml, Erlang, Elixir, Clojure, Nix, Terraform, Dockerfile, SQL, JSON, TOML, and YAML,
 - compact Markdown rendering for agents,
 - a multilingual intentionally broken bug corpus,
 - research notes and source document fetch tooling,
@@ -29,7 +29,7 @@ The local release was checked with these passes.
 | --- | --- | --- |
 | Syntax | `python -m compileall -q src tests tools` | passed |
 | Unit tests | `pytest` | 14 passed |
-| Source corpus | `python tools/fetch_sources.py` | fetched 59/59 source documents |
+| Source corpus | `python tools/fetch_sources.py` | fetched 77/77 source documents |
 | Contract audit | `python tools/audit_contracts.py` | passed |
 | Repo validator | `python tools/verify_repo.py` | passed, wrote `verification-report.json` |
 | CLI JSON | `ancp manifest \| python -m json.tool` | passed |
@@ -37,15 +37,15 @@ The local release was checked with these passes.
 | CLI JSON | `ancp schema \| python -m json.tool` | passed |
 | Shim install | `ancp install-shims --dir .ancp/bin --force` | passed |
 | Shim smoke | normal `python -m py_compile bad.py` through shim | exit 1, ANCP sidecar status `failed`, 1 diagnostic |
-| Bug corpus | `python tools/run_bug_corpus.py` | emitted ANCP JSON/Markdown for all 16 cases |
+| Bug corpus | `python tools/run_bug_corpus.py` | emitted ANCP JSON/Markdown for all 33 cases |
 | Bug corpus validation | `ancp validate .ancp/bug-corpus` | passed |
 | Package build | `python -m build` | built wheel and sdist |
 | Package metadata | `python -m twine check dist/*` | both artifacts passed |
 
 Local tool availability during verification:
 
-- Installed and producing diagnostics: Python, Go, Julia.
-- Not installed or not available in this environment: TypeScript compiler, Rust/Cargo, GCC/Clang, Java, Kotlin, .NET, Swift, Zig, Ruby, PHP, Dart, Scala.
+- Installed and producing diagnostics: Python, Go, Julia, JSON, TOML, YAML, PowerShell.
+- Not installed or not available in this environment: TypeScript compiler, Rust/Cargo, GCC/Clang, Java, Kotlin, .NET, Swift, Zig, Ruby, PHP, Dart, Scala, ShellCheck/Bash, Lua, Perl, R, GHC, OCaml, Erlang, Elixir, clj-kondo, Nix, Terraform, hadolint, SQLFluff.
 - Missing native tools correctly report `tool_failed`; they do not pretend to pass.
 
 ## Scope Boundary

@@ -44,7 +44,9 @@ ANCP 1.0 is designed for these language families:
 
 - statically typed compiled languages such as Rust, Go, C, C++, Zig, Swift, Kotlin, Java, C#,
 - gradually typed languages such as TypeScript and Python with type checkers,
-- dynamic/compiler-JIT ecosystems such as JavaScript, Ruby, PHP, Julia, Lua, and Python without type checking,
+- dynamic/compiler-JIT ecosystems such as JavaScript, Ruby, PHP, Julia, Lua, Perl, R, Elixir, Erlang, Clojure, and Python without type checking,
+- functional and systems ecosystems such as Haskell and OCaml,
+- shell and automation languages such as POSIX shell/Bash and PowerShell,
 - configuration and data languages such as JSON, YAML, TOML, Nix, Terraform, Dockerfile, SQL, and GraphQL,
 - mixed repositories containing multiple languages and toolchains.
 

@@ -26,6 +26,10 @@ The key conclusion:
 | Dart | `dart analyze`, `dart fix` | Analyzer output is CLI-oriented; analysis server/LSP structured | `dart fix --dry-run` and `--apply` | ANCP repair plan split matches Dart's dry-run/apply model. |
 | Scala | `scalac`, Scala CLI, sbt, Metals/BSP | Compiler/build output often text; BSP/Metals structured | Scala CLI actionable diagnostics; Scalafix | ANCP should represent build server protocol/source generator/dependency context. |
 | Julia | `julia`, `Meta.parse`, LanguageServer.jl, StaticLint.jl, Pkg/test workflows | Parser errors are text/exception based; LanguageServer.jl/StaticLint.jl provide richer structured diagnostic paths | Mostly IDE/LSP actions and package-specific tooling; core syntax repair is manual | ANCP should treat Julia as a dynamic compiler/JIT ecosystem: parse first, then layer LSP/static lint and test execution when installed. |
+| Shell/PowerShell | `bash -n`, ShellCheck, PowerShell Parser API | ShellCheck JSON; PowerShell parser errors can be converted from objects | ShellCheck suggestions, PSScriptAnalyzer fixes | ANCP must support automation languages because agents frequently edit scripts and CI glue. |
+| Lua/Perl/R | `luac -p`, `perl -c`, R `parse()` | Mostly text diagnostics; R parser exposes conditions | Mostly manual or linter-driven | Dynamic language adapters can start with parser gates and layer linters later. |
+| Haskell/OCaml/Erlang/Elixir/Clojure | GHC, ocamlc, erlc, elixirc, clj-kondo | Compiler text; clj-kondo JSON | Ecosystem-specific formatters/lint fixers | Functional ecosystems fit ANCP if adapters preserve native compiler output and module/build context. |
+| Config/data/IaC | JSON, TOML, YAML, Nix, Terraform, Dockerfile, SQL | JSON/TOML/YAML parsers; Terraform JSON; hadolint/sqlfluff JSON | Formatters and linters, usually review-required | Agents edit config constantly; ANCP should normalize syntax/config failures as first-class diagnostics. |
 
 ## Common Fields Found Across Ecosystems
 
@@ -109,6 +113,10 @@ Every adapter needs a native validation path:
 - Ruby/PHP: syntax check plus test runner and linter/static analyzer.
 - Dart: `dart analyze`, `dart test`.
 - Julia: `julia --startup-file=no --history-file=no`, parser checks through `Meta.parse`/`Meta.parseall`, LanguageServer.jl/StaticLint.jl when available, and `Pkg.test` for package verification.
+- Shell/PowerShell: `bash -n`, ShellCheck, PowerShell Parser API, PSScriptAnalyzer.
+- Lua/Perl/R: `luac -p`, `perl -c`, `Rscript -e parse(...)`.
+- Haskell/OCaml/Erlang/Elixir/Clojure: compiler syntax/type checks and clj-kondo JSON.
+- Config/data/IaC: parser validation for JSON/TOML/YAML, `nix-instantiate --parse`, `terraform validate -json`, hadolint, sqlfluff.
 
 ANCP must model verification as commands and diagnostic delta, not as a boolean.
 
@@ -171,3 +179,9 @@ The research confirms these core abstractions are necessary:
 | Dart | Use `dart analyze`; map `dart fix --dry-run` to plans and `--apply` to review-required apply. |
 | Scala | Use Scala CLI/sbt/BSP/Metals; expose SemanticDB support under graph profile. |
 | Julia | Use a no-startup parser pass for fast syntax diagnostics; integrate LanguageServer.jl/StaticLint.jl for semantic diagnostics; treat package tests and Pkg operations as effectful verification steps. |
+| Shell | Prefer ShellCheck JSON; fall back to `bash -n` for syntax-only checks. |
+| PowerShell | Use the parser API for syntax diagnostics; PSScriptAnalyzer can be layered as lint/repair metadata. |
+| Lua/Perl/R | Use native parser/compile-only commands first; add language-specific linters as optional richer adapters. |
+| Haskell/OCaml/Erlang/Elixir/Clojure | Use native compilers or clj-kondo; keep build-system integration optional because project setup differs heavily. |
+| JSON/TOML/YAML | Use embedded parsers for deterministic syntax diagnostics with no external tool dependency. |
+| Nix/Terraform/Dockerfile/SQL | Prefer native JSON-output tooling where available; report missing tools honestly. |

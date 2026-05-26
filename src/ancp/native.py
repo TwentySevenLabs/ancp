@@ -29,7 +29,7 @@ def canonical_for_native(native_code: str | None, message: str, default: str = "
         return "ancp.diag.type.mismatch", "type", [doc.repair_hint("ancp.repair.type.convert_value", "Convert value or adjust type annotation", 0.45)]
     if any(token in text for token in ["unused", "never used"]):
         return "ancp.diag.symbol.unused", "symbol", [doc.repair_hint("ancp.repair.lint.apply_fix", "Remove or use the unused symbol", 0.7)]
-    if any(token in text for token in ["syntax", "parse", "expected", "unexpected token"]):
+    if any(token in text for token in ["syntax", "parse", "expected", "unexpected token", "missing ')'", "missing ']'", "missing '}'", "missing end"]):
         return "ancp.diag.syntax.invalid", "syntax", [doc.repair_hint("ancp.repair.syntax.insert_token", "Fix invalid syntax", 0.45)]
     if any(token in text for token in ["test", "assert", "failed"]):
         return "ancp.diag.test.assertion_failed", "test", [doc.repair_hint("ancp.repair.test.fix_subject", "Fix the code under test or the expectation", 0.35)]
@@ -262,4 +262,3 @@ def parse_go_test_json(text: str, root: pathlib.Path) -> list[dict[str, Any]]:
                 )
             )
     return diagnostics
-

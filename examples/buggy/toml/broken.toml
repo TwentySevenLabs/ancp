@@ -1,0 +1,6 @@
+[package]
+name = "broken-toml"
+version = "1.0.0"
+
+[dependencies
+jsonschema = "4"

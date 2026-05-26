@@ -29,7 +29,10 @@ def rel(path: pathlib.Path) -> str:
 
 def should_skip(path: pathlib.Path) -> bool:
     ignored = {".git", ".ancp", "__pycache__", ".pytest_cache", ".mypy_cache", "dist", "build"}
-    return any(part in ignored or part.endswith(".egg-info") for part in path.parts)
+    if any(part in ignored or part.endswith(".egg-info") for part in path.parts):
+        return True
+    parts = set(path.parts)
+    return "examples" in parts and "buggy" in parts
 
 
 def load_json(path: pathlib.Path) -> Any:
@@ -63,6 +66,8 @@ def check_schema_examples() -> Check:
     failures: list[str] = []
     count = 0
     for path in (ROOT / "examples").rglob("*.json"):
+        if "buggy" in path.parts:
+            continue
         count += 1
         doc = load_json(path)
         errors = sorted(validator.iter_errors(doc), key=lambda err: list(err.path))

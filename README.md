@@ -6,7 +6,7 @@ The core idea is simple:
 
 > Existing tools may keep their native internals. ANCP defines the stable machine contract that adapters expose to agents.
 
-ANCP turns tool output into structured diagnostics, repair hints, repair plans, verification steps, code graph facts, effect/capability metadata, and version-matched agent guidance. It is designed to sit above current languages such as TypeScript, Python, Rust, Go, Java, C, C++, C#, Swift, Kotlin, Zig, Ruby, PHP, and others.
+ANCP turns tool output into structured diagnostics, repair hints, repair plans, verification steps, code graph facts, effect/capability metadata, and version-matched agent guidance. It is designed to sit above current languages such as TypeScript, Python, Rust, Go, Java, C, C++, C#, Swift, Kotlin, Julia, Zig, Ruby, PHP, Lua, Perl, R, Haskell, OCaml, Erlang, Elixir, Clojure, Nix, Terraform, Dockerfile, SQL, JSON, TOML, YAML, and others.
 
 ## What This Repository Contains
 
@@ -30,6 +30,7 @@ This repository is the public ANCP 1.0 contract and Python reference implementat
 | Native-tool adapters | Implemented | [src/ancp/adapters](src/ancp/adapters) |
 | Bug corpus | Implemented | [examples/buggy](examples/buggy) |
 | Repository verifier | Implemented | [tools/verify_repo.py](tools/verify_repo.py) |
+| Toolchain availability checker | Implemented | [tools/check_toolchains.py](tools/check_toolchains.py) |
 
 ## Why ANCP Exists
 
@@ -165,6 +166,9 @@ julia app.jl
 kotlinc Main.kt
 gcc -fsyntax-only main.c
 clang++ -fsyntax-only main.cpp
+bash -n script.sh
+pwsh -NoProfile -File script.ps1
+terraform validate
 ```
 
 The native compiler output and exit code are preserved. ANCP writes a structured sidecar:
@@ -247,6 +251,7 @@ python tools/audit_contracts.py
 python tools/verify_repo.py
 pytest
 python tools/run_bug_corpus.py
+python tools/check_toolchains.py
 python -m build
 python -m twine check dist/*
 ```

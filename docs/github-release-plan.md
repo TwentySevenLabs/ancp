@@ -127,7 +127,7 @@ Highlights:
 - diagnostic, repair, and effect taxonomies
 - reference CLI
 - compiler-name shim installation
-- native-tool adapters for Python, TypeScript, JavaScript, Rust, Go, C/C++, Java, Kotlin, .NET, Swift, Zig, Ruby, PHP, Dart, Scala, and Julia
+- native-tool adapters for Python, TypeScript, JavaScript, Rust, Go, C/C++, Java, Kotlin, .NET, Swift, Zig, Ruby, PHP, Dart, Scala, Julia, Shell, PowerShell, Lua, Perl, R, Haskell, OCaml, Erlang, Elixir, Clojure, Nix, Terraform, Dockerfile, SQL, JSON, TOML, and YAML
 - validation and conformance tooling
 - GitHub Actions CI
 - research-backed language/tooling matrix

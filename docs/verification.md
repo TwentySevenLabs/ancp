@@ -78,6 +78,7 @@ ancp capabilities | python -m json.tool
 ancp schema | python -m json.tool
 python -m build
 python -m twine check dist/*
+python tools/check_toolchains.py
 ```
 
 Purpose:
@@ -87,6 +88,7 @@ Purpose:
 - confirms top-level CLI commands emit parseable JSON,
 - confirms wheel and source distributions can be built,
 - confirms package metadata is acceptable to Python packaging tools.
+- reports which native language toolchains are available for real compiler-backed smoke coverage.
 
 Expected result:
 
@@ -95,6 +97,7 @@ Expected result:
 - CLI JSON commands parse,
 - build succeeds,
 - `twine check` reports `PASSED` for every built artifact.
+- installed native toolchains appear in the availability report; missing optional toolchains are expected on partial developer machines.
 
 ## Pass 5: Invisible Compiler Layer And Bug Corpus
 

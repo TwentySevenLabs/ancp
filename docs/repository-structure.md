@@ -89,7 +89,7 @@
 - `ancp`: the reference CLI for manifest, capability, check, explain, repair-plan, verify, graph, skills, validate, render, schema, and shim installation.
 - `ancp.proxy`: prefixed compiler proxies such as `ancp-cargo`, `ancp-tsc`, `ancp-python`, `ancp-kotlinc`, and `ancp-julia`.
 - `ancp.shim`: native-name wrappers installed by `ancp install-shims`, so normal commands such as `cargo check` and `python -m py_compile app.py` can emit ANCP sidecars.
-- `ancp.adapters`: native-tool adapters for Python, TypeScript, JavaScript, Rust, Go, C/C++, Java, Kotlin, C#/.NET, Swift, Zig, Ruby, PHP, Dart, Scala, and Julia.
+- `ancp.adapters`: native-tool adapters for Python, TypeScript, JavaScript, Rust, Go, C/C++, Java, Kotlin, C#/.NET, Swift, Zig, Ruby, PHP, Dart, Scala, Julia, Shell, PowerShell, Lua, Perl, R, Haskell, OCaml, Erlang, Elixir, Clojure, Nix, Terraform, Dockerfile, SQL, JSON, TOML, and YAML.
 - `ancp.resources`: packaged copies of the ANCP schema and taxonomies for installed environments.
 
 ## Contract Artifacts

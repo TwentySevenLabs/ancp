@@ -32,6 +32,23 @@ CASES = [
     ("php", ROOT / "examples/buggy/php", ["ancp", "check", "--workspace", ".", "--language", "php"]),
     ("dart", ROOT / "examples/buggy/dart", ["ancp", "check", "--workspace", ".", "--language", "dart"]),
     ("scala", ROOT / "examples/buggy/scala", ["ancp", "check", "--workspace", ".", "--language", "scala"]),
+    ("json", ROOT / "examples/buggy/json", ["ancp", "check", "--workspace", ".", "--language", "json"]),
+    ("toml", ROOT / "examples/buggy/toml", ["ancp", "check", "--workspace", ".", "--language", "toml"]),
+    ("yaml", ROOT / "examples/buggy/yaml", ["ancp", "check", "--workspace", ".", "--language", "yaml"]),
+    ("shell", ROOT / "examples/buggy/shell", ["ancp", "check", "--workspace", ".", "--language", "shell"]),
+    ("powershell", ROOT / "examples/buggy/powershell", ["ancp", "check", "--workspace", ".", "--language", "powershell"]),
+    ("lua", ROOT / "examples/buggy/lua", ["ancp", "check", "--workspace", ".", "--language", "lua"]),
+    ("perl", ROOT / "examples/buggy/perl", ["ancp", "check", "--workspace", ".", "--language", "perl"]),
+    ("r", ROOT / "examples/buggy/r", ["ancp", "check", "--workspace", ".", "--language", "r"]),
+    ("haskell", ROOT / "examples/buggy/haskell", ["ancp", "check", "--workspace", ".", "--language", "haskell"]),
+    ("ocaml", ROOT / "examples/buggy/ocaml", ["ancp", "check", "--workspace", ".", "--language", "ocaml"]),
+    ("erlang", ROOT / "examples/buggy/erlang", ["ancp", "check", "--workspace", ".", "--language", "erlang"]),
+    ("elixir", ROOT / "examples/buggy/elixir", ["ancp", "check", "--workspace", ".", "--language", "elixir"]),
+    ("clojure", ROOT / "examples/buggy/clojure", ["ancp", "check", "--workspace", ".", "--language", "clojure"]),
+    ("nix", ROOT / "examples/buggy/nix", ["ancp", "check", "--workspace", ".", "--language", "nix"]),
+    ("terraform", ROOT / "examples/buggy/terraform", ["ancp", "check", "--workspace", ".", "--language", "terraform"]),
+    ("dockerfile", ROOT / "examples/buggy/dockerfile", ["ancp", "check", "--workspace", ".", "--language", "dockerfile"]),
+    ("sql", ROOT / "examples/buggy/sql", ["ancp", "check", "--workspace", ".", "--language", "sql"]),
 ]
 
 

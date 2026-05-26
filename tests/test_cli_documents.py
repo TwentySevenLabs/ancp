@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from ancp.cli import aggregate_status, capabilities_document, graph_document, resolve_workspace, skills_document, verify_document
+from ancp.adapters import get_adapter
 from ancp.schema import validate_document
 
 
@@ -45,3 +46,21 @@ def test_verify_document_does_not_pass_missing_tool(tmp_path: Path) -> None:
     document = verify_document(tmp_path, "scala", timeout=1)
     if document["data"]["checkDocuments"][0]["status"] == "tool_failed":
         assert document["status"] == "tool_failed"
+
+
+def test_internal_json_toml_yaml_adapters_validate(tmp_path: Path) -> None:
+    cases = [
+        ("json", "broken.json", '{"items": [1, 2,]}'),
+        ("toml", "broken.toml", "[project\nname = 'broken'\n"),
+        ("yaml", "broken.yaml", "items:\n  - one\n    nested: bad\n"),
+    ]
+    for language, filename, content in cases:
+        root = tmp_path / language
+        root.mkdir()
+        (root / filename).write_text(content, encoding="utf-8")
+        adapter = get_adapter(language)
+        assert adapter is not None
+        document = adapter.check(root)
+        assert document["status"] == "failed"
+        assert document["diagnostics"]
+        assert validate_document(document) == []

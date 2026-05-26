@@ -9,7 +9,8 @@ ANCP 1.0.0 ships the Agent Native Compiler Protocol contract and Python referenc
 - Diagnostic, repair, and effect taxonomies.
 - Reference CLI: `ancp`.
 - Compiler-name shims for invisible compiler-layer usage.
-- Native-tool adapters for Python, TypeScript, JavaScript, Rust, Go, C/C++, Java, Kotlin, C#/.NET, Swift, Zig, Ruby, PHP, Dart, Scala, and Julia.
+- Native-tool adapters for Python, TypeScript, JavaScript, Rust, Go, C/C++, Java, Kotlin, C#/.NET, Swift, Zig, Ruby, PHP, Dart, Scala, Julia, Shell, PowerShell, Lua, Perl, R, Haskell, OCaml, Erlang, Elixir, Clojure, Nix, Terraform, Dockerfile, and SQL.
+- Built-in parser adapters for JSON, TOML, and YAML.
 - Compact Markdown rendering for agent context.
 - Multilingual broken-code corpus for adapter smoke testing.
 - CI, packaging, verification scripts, and OSS release checklist.

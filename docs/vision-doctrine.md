@@ -57,7 +57,7 @@ The developer should not need to learn a new workflow just to make code agent-re
    If a compiler/tool is not installed or a language lacks stable structured output, ANCP must report that honestly as valid ANCP JSON. It must not fabricate successful checks.
 
 6. **Multi-language from the start.**
-   The important targets include Rust, Kotlin, Python, Julia, TypeScript, C, C++, Go, Java, C#/.NET, Swift, Zig, Ruby, PHP, Dart, Scala, and JavaScript.
+   The important targets include Rust, Kotlin, Python, Julia, TypeScript, C, C++, Go, Java, C#/.NET, Swift, Zig, Ruby, PHP, Dart, Scala, JavaScript, Shell, PowerShell, Lua, Perl, R, Haskell, OCaml, Erlang, Elixir, Clojure, Nix, Terraform, Dockerfile, SQL, JSON, TOML, and YAML.
 
 7. **Security is part of the protocol.**
    Build/test/repair commands can execute arbitrary code. ANCP must label effects, safety levels, and risky operations instead of hiding them.
@@ -271,4 +271,3 @@ The first public release succeeds if someone can:
 9. get a compact, useful diagnosis instead of a noisy compiler dump.
 
 That is the revolution: compilers become agent-readable without developers changing how they code.
-

@@ -44,6 +44,23 @@ NATIVE_TO_ADAPTER = {
     "scala-cli": "scala",
     "scalac": "scala",
     "julia": "julia",
+    "shellcheck": "shell",
+    "bash": "shell",
+    "pwsh": "powershell",
+    "powershell": "powershell",
+    "luac": "lua",
+    "lua": "lua",
+    "perl": "perl",
+    "rscript": "r",
+    "ghc": "haskell",
+    "ocamlc": "ocaml",
+    "erlc": "erlang",
+    "elixirc": "elixir",
+    "clj-kondo": "clojure",
+    "nix-instantiate": "nix",
+    "terraform": "terraform",
+    "hadolint": "dockerfile",
+    "sqlfluff": "sql",
 }
 
 

@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_all_examples_validate() -> None:
-    paths = sorted((ROOT / "examples").rglob("*.json"))
+    paths = sorted(path for path in (ROOT / "examples").rglob("*.json") if "buggy" not in path.parts)
     assert paths
     for path in paths:
         document = json.loads(path.read_text(encoding="utf-8"))
@@ -23,4 +23,3 @@ def test_manifest_document_validates() -> None:
     document = manifest_document()
     assert document["documentKind"] == "manifest.adapter"
     assert validate_document(document) == []
-

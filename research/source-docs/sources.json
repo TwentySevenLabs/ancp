@@ -529,5 +529,167 @@
     "url": "https://www.julia-vscode.org/StaticLint.jl/v4.4/",
     "local": "julia/staticlint.html",
     "relevance": "Julia static analysis used by LanguageServer.jl for project-wide diagnostics."
+  },
+  {
+    "id": "shell-bash-invocation",
+    "category": "language",
+    "language": "shell",
+    "title": "Bash Invocation",
+    "url": "https://www.gnu.org/software/bash/manual/html_node/Invoking-Bash.html",
+    "local": "shell/bash-invocation.html",
+    "relevance": "Shell syntax-check mode through Bash invocation flags."
+  },
+  {
+    "id": "shell-shellcheck-json",
+    "category": "tool",
+    "language": "shell",
+    "title": "ShellCheck Output Formats",
+    "url": "https://github.com/koalaman/shellcheck/wiki/Integration",
+    "local": "shell/shellcheck-integration.html",
+    "relevance": "ShellCheck JSON output and diagnostic integration."
+  },
+  {
+    "id": "powershell-parser-api",
+    "category": "language",
+    "language": "powershell",
+    "title": "PowerShell Parser API",
+    "url": "https://learn.microsoft.com/en-us/dotnet/api/system.management.automation.language.parser.parsefile",
+    "local": "powershell/parser-parsefile.html",
+    "relevance": "PowerShell parser diagnostics from ParseFile."
+  },
+  {
+    "id": "lua-luac",
+    "category": "language",
+    "language": "lua",
+    "title": "Lua Standalone Compiler",
+    "url": "https://www.lua.org/manual/5.4/luac.html",
+    "local": "lua/luac.html",
+    "relevance": "Lua syntax checking with luac -p."
+  },
+  {
+    "id": "perl-run",
+    "category": "language",
+    "language": "perl",
+    "title": "perlrun",
+    "url": "https://perldoc.perl.org/perlrun",
+    "local": "perl/perlrun.html",
+    "relevance": "Perl command-line compile check behavior."
+  },
+  {
+    "id": "r-parse",
+    "category": "language",
+    "language": "r",
+    "title": "R parse",
+    "url": "https://stat.ethz.ch/R-manual/R-devel/library/base/html/parse.html",
+    "local": "r/parse.html",
+    "relevance": "R parser behavior and parse diagnostics."
+  },
+  {
+    "id": "haskell-ghc-using",
+    "category": "language",
+    "language": "haskell",
+    "title": "Using GHC",
+    "url": "https://downloads.haskell.org/ghc/latest/docs/users_guide/using.html",
+    "local": "haskell/using-ghc.html",
+    "relevance": "GHC command-line compilation and no-code checking."
+  },
+  {
+    "id": "ocaml-ocamlc",
+    "category": "language",
+    "language": "ocaml",
+    "title": "OCaml ocamlc",
+    "url": "https://ocaml.org/manual/5.3/comp.html",
+    "local": "ocaml/ocamlc.html",
+    "relevance": "OCaml bytecode compiler diagnostics and compile-only behavior."
+  },
+  {
+    "id": "erlang-erlc",
+    "category": "language",
+    "language": "erlang",
+    "title": "erlc",
+    "url": "https://www.erlang.org/doc/man/erlc.html",
+    "local": "erlang/erlc.html",
+    "relevance": "Erlang compiler command-line behavior."
+  },
+  {
+    "id": "elixir-compiler-cli",
+    "category": "language",
+    "language": "elixir",
+    "title": "elixirc",
+    "url": "https://hexdocs.pm/elixir/main/Kernel.ParallelCompiler.html",
+    "local": "elixir/compiler.html",
+    "relevance": "Elixir compiler diagnostics and parallel compiler behavior."
+  },
+  {
+    "id": "clojure-clj-kondo",
+    "category": "tool",
+    "language": "clojure",
+    "title": "clj-kondo",
+    "url": "https://cljdoc.org/d/clj-kondo/clj-kondo/2026.04.15/doc/configuration",
+    "local": "clojure/clj-kondo-configuration.html",
+    "relevance": "Clojure static lint diagnostics and JSON output."
+  },
+  {
+    "id": "nix-instantiate",
+    "category": "language",
+    "language": "nix",
+    "title": "nix-instantiate",
+    "url": "https://nix.dev/manual/nix/2.24/command-ref/nix-instantiate",
+    "local": "nix/nix-instantiate.html",
+    "relevance": "Nix expression parsing and evaluation command surface."
+  },
+  {
+    "id": "terraform-validate",
+    "category": "tool",
+    "language": "terraform",
+    "title": "terraform validate",
+    "url": "https://developer.hashicorp.com/terraform/cli/commands/validate",
+    "local": "terraform/validate.html",
+    "relevance": "Terraform JSON validation diagnostics."
+  },
+  {
+    "id": "dockerfile-hadolint",
+    "category": "tool",
+    "language": "dockerfile",
+    "title": "Hadolint",
+    "url": "https://raw.githubusercontent.com/hadolint/hadolint/master/README.md",
+    "local": "dockerfile/hadolint-readme.md",
+    "relevance": "Dockerfile lint diagnostics and JSON output."
+  },
+  {
+    "id": "sql-sqlfluff-cli",
+    "category": "tool",
+    "language": "sql",
+    "title": "SQLFluff CLI",
+    "url": "https://docs.sqlfluff.com/en/stable/reference/cli.html",
+    "local": "sql/sqlfluff-cli.html",
+    "relevance": "SQL lint diagnostics and JSON output."
+  },
+  {
+    "id": "json-rfc8259",
+    "category": "language",
+    "language": "json",
+    "title": "RFC 8259 JSON",
+    "url": "https://www.rfc-editor.org/rfc/rfc8259.html",
+    "local": "json/rfc8259.html",
+    "relevance": "JSON syntax and interchange requirements."
+  },
+  {
+    "id": "toml-spec",
+    "category": "language",
+    "language": "toml",
+    "title": "TOML Specification",
+    "url": "https://toml.io/en/v1.0.0",
+    "local": "toml/spec.html",
+    "relevance": "TOML syntax requirements for config files."
+  },
+  {
+    "id": "yaml-spec",
+    "category": "language",
+    "language": "yaml",
+    "title": "YAML Specification",
+    "url": "https://yaml.org/spec/1.2.2/",
+    "local": "yaml/spec.html",
+    "relevance": "YAML syntax requirements for config files."
   }
 ]

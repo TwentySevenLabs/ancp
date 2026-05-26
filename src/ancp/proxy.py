@@ -41,6 +41,24 @@ SHIM_TO_ADAPTER_AND_COMMAND = {
     "ancp-scala-cli": ("scala", "scala-cli"),
     "ancp-scalac": ("scala", "scalac"),
     "ancp-julia": ("julia", "julia"),
+    "ancp-shellcheck": ("shell", "shellcheck"),
+    "ancp-bash": ("shell", "bash"),
+    "ancp-pwsh": ("powershell", "pwsh"),
+    "ancp-powershell": ("powershell", "powershell"),
+    "ancp-luac": ("lua", "luac"),
+    "ancp-lua": ("lua", "lua"),
+    "ancp-perl": ("perl", "perl"),
+    "ancp-Rscript": ("r", "Rscript"),
+    "ancp-rscript": ("r", "Rscript"),
+    "ancp-ghc": ("haskell", "ghc"),
+    "ancp-ocamlc": ("ocaml", "ocamlc"),
+    "ancp-erlc": ("erlang", "erlc"),
+    "ancp-elixirc": ("elixir", "elixirc"),
+    "ancp-clj-kondo": ("clojure", "clj-kondo"),
+    "ancp-nix-instantiate": ("nix", "nix-instantiate"),
+    "ancp-terraform": ("terraform", "terraform"),
+    "ancp-hadolint": ("dockerfile", "hadolint"),
+    "ancp-sqlfluff": ("sql", "sqlfluff"),
 }
 
 
@@ -54,7 +72,10 @@ def proxy_document(
     if adapter is None:
         raise SystemExit(f"Unknown adapter: {adapter_key}")
     result = run_command(native_command, root, timeout=timeout)
-    tool = ToolSpec(native_command[0], "compiler", native_command)
+    executable_name = pathlib.Path(native_command[0]).name
+    if executable_name.lower().endswith((".exe", ".cmd", ".bat")):
+        executable_name = pathlib.Path(executable_name).stem
+    tool = ToolSpec(executable_name, "compiler", native_command)
     diagnostics = adapter.parse_result(root, result, tool)
     document = doc.envelope("result.check", f"ancp-{adapter.key}-compiler-proxy")
     document.update(
@@ -181,4 +202,20 @@ dart_main = make_shim("ancp-dart")
 scala_cli_main = make_shim("ancp-scala-cli")
 scalac_main = make_shim("ancp-scalac")
 julia_main = make_shim("ancp-julia")
-
+shellcheck_main = make_shim("ancp-shellcheck")
+bash_main = make_shim("ancp-bash")
+pwsh_main = make_shim("ancp-pwsh")
+powershell_main = make_shim("ancp-powershell")
+luac_main = make_shim("ancp-luac")
+lua_main = make_shim("ancp-lua")
+perl_main = make_shim("ancp-perl")
+rscript_main = make_shim("ancp-rscript")
+ghc_main = make_shim("ancp-ghc")
+ocamlc_main = make_shim("ancp-ocamlc")
+erlc_main = make_shim("ancp-erlc")
+elixirc_main = make_shim("ancp-elixirc")
+clj_kondo_main = make_shim("ancp-clj-kondo")
+nix_instantiate_main = make_shim("ancp-nix-instantiate")
+terraform_main = make_shim("ancp-terraform")
+hadolint_main = make_shim("ancp-hadolint")
+sqlfluff_main = make_shim("ancp-sqlfluff")

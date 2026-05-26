@@ -34,7 +34,9 @@ classifiers = [
   "Topic :: Software Development :: Quality Assurance"
 ]
 dependencies = [
-  "jsonschema>=4.22.0"
+  "jsonschema>=4.22.0",
+  "PyYAML>=6.0.0",
+  "tomli>=2.0.0; python_version < '3.11'"
 ]
 
 [project.optional-dependencies]
@@ -73,6 +75,23 @@ ancp-dart = "ancp.proxy:dart_main"
 ancp-scala-cli = "ancp.proxy:scala_cli_main"
 ancp-scalac = "ancp.proxy:scalac_main"
 ancp-julia = "ancp.proxy:julia_main"
+ancp-shellcheck = "ancp.proxy:shellcheck_main"
+ancp-bash = "ancp.proxy:bash_main"
+ancp-pwsh = "ancp.proxy:pwsh_main"
+ancp-powershell = "ancp.proxy:powershell_main"
+ancp-luac = "ancp.proxy:luac_main"
+ancp-lua = "ancp.proxy:lua_main"
+ancp-perl = "ancp.proxy:perl_main"
+ancp-rscript = "ancp.proxy:rscript_main"
+ancp-ghc = "ancp.proxy:ghc_main"
+ancp-ocamlc = "ancp.proxy:ocamlc_main"
+ancp-erlc = "ancp.proxy:erlc_main"
+ancp-elixirc = "ancp.proxy:elixirc_main"
+ancp-clj-kondo = "ancp.proxy:clj_kondo_main"
+ancp-nix-instantiate = "ancp.proxy:nix_instantiate_main"
+ancp-terraform = "ancp.proxy:terraform_main"
+ancp-hadolint = "ancp.proxy:hadolint_main"
+ancp-sqlfluff = "ancp.proxy:sqlfluff_main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

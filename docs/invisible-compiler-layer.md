@@ -95,6 +95,23 @@ The reference implementation can create shims for:
 - `scala-cli`
 - `scalac`
 - `julia`
+- `shellcheck`
+- `bash`
+- `pwsh`
+- `powershell`
+- `luac`
+- `lua`
+- `perl`
+- `Rscript`
+- `ghc`
+- `ocamlc`
+- `erlc`
+- `elixirc`
+- `clj-kondo`
+- `nix-instantiate`
+- `terraform`
+- `hadolint`
+- `sqlfluff`
 
 These shims do not replace compilers. They find the real compiler later in PATH, execute it, preserve its output and exit code, then emit ANCP JSON.
 
@@ -125,4 +142,3 @@ A shim is production-acceptable when it obeys these rules:
 - it validates emitted ANCP documents.
 
 That gives agents a stable protocol without forcing every language compiler project to accept upstream patches first.
-

@@ -19,6 +19,7 @@ SOURCES_PATH = ROOT / "research" / "source-docs" / "sources.json"
 SNAPSHOT_ROOT = ROOT / "research" / "source-docs" / "snapshots"
 REPORT_PATH = ROOT / "research" / "source-docs" / "fetch-report.json"
 INDEX_PATH = ROOT / "research" / "source-docs" / "index.md"
+FETCH_ATTEMPTS = 3
 
 
 def fetch(url: str) -> tuple[int | None, bytes, str | None]:
@@ -39,6 +40,21 @@ def fetch(url: str) -> tuple[int | None, bytes, str | None]:
         return None, b"", str(exc)
 
 
+def fetch_with_retries(url: str) -> tuple[int | None, bytes, str | None, int]:
+    last_status: int | None = None
+    last_body = b""
+    last_error: str | None = None
+    for attempt in range(1, FETCH_ATTEMPTS + 1):
+        status, body, error = fetch(url)
+        last_status, last_body, last_error = status, body, error
+        ok = bool(status and 200 <= status < 400 and body)
+        retryable = status is None or status in {408, 425, 429} or bool(status and 500 <= status < 600)
+        if ok or not retryable or attempt == FETCH_ATTEMPTS:
+            return status, body, error, attempt
+        time.sleep(1.5 * attempt)
+    return last_status, last_body, last_error, FETCH_ATTEMPTS
+
+
 def main() -> int:
     sources = json.loads(SOURCES_PATH.read_text(encoding="utf-8"))
     SNAPSHOT_ROOT.mkdir(parents=True, exist_ok=True)
@@ -49,7 +65,7 @@ def main() -> int:
         output.parent.mkdir(parents=True, exist_ok=True)
 
         started = time.time()
-        status, body, error = fetch(source["url"])
+        status, body, error, attempts = fetch_with_retries(source["url"])
         elapsed_ms = round((time.time() - started) * 1000)
 
         ok = bool(status and 200 <= status < 400 and body)
@@ -66,6 +82,7 @@ def main() -> int:
                 "ok": ok,
                 "bytes": len(body),
                 "elapsedMs": elapsed_ms,
+                "attempts": attempts,
                 "error": error,
             }
         )
@@ -101,4 +118,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

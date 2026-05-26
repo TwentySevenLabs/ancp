@@ -714,7 +714,10 @@ class TomlAdapter(InternalSyntaxAdapter):
     tool_name = "python-tomllib"
 
     def parse_internal(self, root: pathlib.Path) -> list[dict[str, Any]]:
-        import tomllib
+        try:
+            import tomllib
+        except ModuleNotFoundError:  # Python 3.10 compatibility.
+            import tomli as tomllib
 
         diagnostics: list[dict[str, Any]] = []
         for path in list_files(root, self.file_extensions, limit=200):

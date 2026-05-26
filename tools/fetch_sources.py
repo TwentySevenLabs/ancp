@@ -65,7 +65,18 @@ def main() -> int:
         output.parent.mkdir(parents=True, exist_ok=True)
 
         started = time.time()
-        status, body, error, attempts = fetch_with_retries(source["url"])
+        urls = [source["url"], *source.get("fallbackUrls", [])]
+        status = None
+        body = b""
+        error = None
+        attempts = 0
+        fetched_url = source["url"]
+        for url in urls:
+            fetched_url = url
+            status, body, error, url_attempts = fetch_with_retries(url)
+            attempts += url_attempts
+            if bool(status and 200 <= status < 400 and body):
+                break
         elapsed_ms = round((time.time() - started) * 1000)
 
         ok = bool(status and 200 <= status < 400 and body)
@@ -77,6 +88,7 @@ def main() -> int:
                 "id": source["id"],
                 "title": source["title"],
                 "url": source["url"],
+                "fetchedUrl": fetched_url,
                 "local": str(output.relative_to(ROOT)).replace("\\", "/"),
                 "status": status,
                 "ok": ok,

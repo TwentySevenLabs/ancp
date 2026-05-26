@@ -536,6 +536,9 @@
     "language": "shell",
     "title": "Bash Invocation",
     "url": "https://www.gnu.org/software/bash/manual/html_node/Invoking-Bash.html",
+    "fallbackUrls": [
+      "https://man7.org/linux/man-pages/man1/bash.1.html"
+    ],
     "local": "shell/bash-invocation.html",
     "relevance": "Shell syntax-check mode through Bash invocation flags."
   },

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ancp.native import TSC_RE, parse_pyright_json, parse_rust_json_lines, parse_text_lines
+from ancp.native import TSC_RE, canonical_for_native, parse_go_text, parse_pyright_json, parse_rust_json_lines, parse_text_lines
 
 
 def test_typescript_text_diagnostic_parse(tmp_path: Path) -> None:
@@ -54,3 +54,20 @@ def test_rust_json_parse(tmp_path: Path) -> None:
     assert diagnostics[0]["nativeCode"] == "E0425"
     assert diagnostics[0]["canonicalCode"] == "ancp.diag.symbol.unresolved"
 
+
+def test_go_text_parse(tmp_path: Path) -> None:
+    source = tmp_path / "main.go"
+    source.write_text("package main\n", encoding="utf-8")
+    text = "main.go:4:8: package not/a/real/package is not in std (C:\\Program Files\\Go\\src\\not\\a\\real\\package)\n"
+    diagnostics = parse_go_text(text, tmp_path)
+    assert len(diagnostics) == 1
+    assert diagnostics[0]["primaryLocation"]["artifact"]["uri"].endswith("/main.go")
+    assert diagnostics[0]["primaryLocation"]["range"]["start"]["line"] == 3
+    assert diagnostics[0]["canonicalCode"] == "ancp.diag.import.missing"
+
+
+def test_julia_package_missing_classifies_as_import() -> None:
+    canonical, kind, hints = canonical_for_native("ArgumentError", "Package DoesNotExist not found in current path.")
+    assert canonical == "ancp.diag.import.missing"
+    assert kind == "import"
+    assert hints

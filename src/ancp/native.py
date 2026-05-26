@@ -21,10 +21,10 @@ PHP_RE = re.compile(r"(?:Parse error|Fatal error):\s+(?P<message>.+?)\s+in\s+(?P
 
 def canonical_for_native(native_code: str | None, message: str, default: str = "ancp.diag.unknown") -> tuple[str, str, list[dict[str, Any]]]:
     text = f"{native_code or ''} {message}".lower()
+    if any(token in text for token in ["not found in current path", "is not in std", "package does not exist", "cannot find module", "could not be resolved", "no such module", "no such file or directory"]):
+        return "ancp.diag.import.missing", "import", [doc.repair_hint("ancp.repair.module.add_dependency", "Add or fix the missing dependency/import path", 0.5)]
     if any(token in text for token in ["cannot find name", "cannot find value", "undefined", "undeclared", "unresolved reference", "not found", "does not exist in the current context"]):
         return "ancp.diag.symbol.unresolved", "symbol", [doc.repair_hint("ancp.repair.symbol.import_missing", "Import or declare the missing symbol", 0.55)]
-    if any(token in text for token in ["cannot find module", "could not be resolved", "no such module", "package does not exist", "no such file or directory"]):
-        return "ancp.diag.import.missing", "import", [doc.repair_hint("ancp.repair.module.add_dependency", "Add or fix the missing dependency/import path", 0.5)]
     if any(token in text for token in ["type mismatch", "mismatched types", "not assignable", "cannot convert", "incompatible types"]):
         return "ancp.diag.type.mismatch", "type", [doc.repair_hint("ancp.repair.type.convert_value", "Convert value or adjust type annotation", 0.45)]
     if any(token in text for token in ["unused", "never used"]):
@@ -261,4 +261,32 @@ def parse_go_test_json(text: str, root: pathlib.Path) -> list[dict[str, Any]]:
                     {"native": event},
                 )
             )
+    return diagnostics
+
+
+def parse_go_text(text: str, root: pathlib.Path) -> list[dict[str, Any]]:
+    diagnostics: list[dict[str, Any]] = []
+    counter = 0
+    for line in text.splitlines():
+        match = GO_FILE_RE.search(line)
+        if not match:
+            continue
+        counter += 1
+        file_path = root / match.group("file")
+        message = match.group("message").strip()
+        canonical, kind, hints = canonical_for_native(None, message)
+        diagnostics.append(
+            doc.diagnostic(
+                f"diag-go-text-{counter:04d}",
+                canonical,
+                None,
+                "error",
+                kind,
+                message,
+                doc.location(file_path, "go", int(match.group("line")) - 1, int(match.group("col")) - 1),
+                "go",
+                hints,
+                {"raw": line.strip()},
+            )
+        )
     return diagnostics

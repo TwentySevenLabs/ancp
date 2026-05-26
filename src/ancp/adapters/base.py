@@ -18,6 +18,7 @@ from ancp.native import (
     TSC_RE,
     canonical_for_native,
     parse_go_test_json,
+    parse_go_text,
     parse_pyright_json,
     parse_ruff_json,
     parse_rust_json_lines,
@@ -386,6 +387,8 @@ class GoAdapter(Adapter):
     def parse_result(self, root: pathlib.Path, result: CommandResult, tool: ToolSpec) -> list[dict[str, Any]]:
         diagnostics = parse_go_test_json(result.stdout, root)
         if not diagnostics:
+            diagnostics = parse_go_text(result.stderr + "\n" + result.stdout, root)
+        if not diagnostics:
             diagnostics = parse_text_lines(result.stderr + "\n" + result.stdout, GCC_RE, root, "go", "go", "diag-go")
         return diagnostics
 
@@ -657,29 +660,41 @@ class JuliaAdapter(Adapter):
 
         text = result.stderr + "\n" + result.stdout
         match = re.search(r"# Error @ (?P<file>.+?):(?P<line>\d+):(?P<col>\d+)", text)
+        expression_match = re.search(r"in expression starting at (?P<file>.+?):(?P<line>\d+)", text)
         files = list_files(root, self.file_extensions, limit=1)
-        file_path = pathlib.Path(match.group("file")) if match else (files[0] if files else root)
+        file_path = pathlib.Path(match.group("file")) if match else (pathlib.Path(expression_match.group("file")) if expression_match else (files[0] if files else root))
         if not file_path.is_absolute():
             file_path = root / file_path
-        line = int(match.group("line")) - 1 if match else 0
+        line = int(match.group("line")) - 1 if match else (int(expression_match.group("line")) - 1 if expression_match else 0)
         col = int(match.group("col")) - 1 if match else 0
         concise_messages = re.findall(r"Expected `[^`]+`|premature end of input", text)
         if concise_messages:
             message = "; ".join(dict.fromkeys(concise_messages))
+            native_code = "ParseError"
         else:
+            error_match = re.search(r"ERROR:\s+(?:LoadError:\s+)?(?:(?P<native>[A-Za-z]+Error):\s+)?(?P<message>[^\n]+)", text)
             message_match = re.search(r"ParseError:[^\n]+", text)
-            message = message_match.group(0) if message_match else "Julia parse/check failed"
+            if error_match:
+                native_code = error_match.group("native") or "JuliaError"
+                message = error_match.group("message").strip()
+            elif message_match:
+                native_code = "ParseError"
+                message = message_match.group(0)
+            else:
+                native_code = "JuliaError"
+                message = "Julia check failed"
+        canonical, kind, hints = canonical_for_native(native_code, message)
         return [
             doc.diagnostic(
                 "diag-julia-0001",
-                "ancp.diag.syntax.invalid",
-                "ParseError",
+                canonical,
+                native_code,
                 "error",
-                "syntax",
+                kind,
                 message,
                 doc.location(file_path, "julia", line, col, line, col + 1),
                 "julia",
-                [doc.repair_hint("ancp.repair.syntax.insert_token", "Fix Julia syntax", 0.35)],
+                hints,
                 {"stderrSummary": text[-2000:]},
             )
         ]

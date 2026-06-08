@@ -204,8 +204,11 @@ def enable(
     enabled_before = _path_contains(path_before, shim_dir)
     if scope == "user":
         if os.name != "nt":
-            raise RuntimeError("ancp enable --scope user currently supports Windows persistent PATH only")
-        if not _path_contains(path_before, shim_dir):
+            if not dry_run:
+                raise RuntimeError("ancp enable --scope user currently supports Windows persistent PATH only")
+            path_after = str(shim_dir) + (os.pathsep + path_before if path_before else "")
+            path_changed = not enabled_before
+        elif not _path_contains(path_before, shim_dir):
             path_after = str(shim_dir) + (os.pathsep + path_before if path_before else "")
             path_changed = True
             if not dry_run:

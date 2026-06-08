@@ -8,6 +8,8 @@ stderr, and exit code, and mirrors a structured ANCP document to disk.
 from __future__ import annotations
 
 import argparse
+import json
+import os
 import pathlib
 import sys
 from typing import Any
@@ -15,8 +17,9 @@ from typing import Any
 from . import documents as doc
 from .adapters import get_adapter
 from .adapters.base import ToolSpec
+from .render import estimate_tokens, render_text
 from .schema import validate_document
-from .util import command_run_object, find_workspace, run_command
+from .util import command_run_object, find_workspace, path_to_uri, run_command, sha256_text
 
 
 SHIM_TO_ADAPTER_AND_COMMAND = {
@@ -77,12 +80,14 @@ def proxy_document(
         executable_name = pathlib.Path(executable_name).stem
     tool = ToolSpec(executable_name, "compiler", native_command)
     diagnostics = adapter.parse_result(root, result, tool)
+    run_object = command_run_object(result)
+    raw_output = write_raw_output(root, run_object["runId"], result.stdout, result.stderr)
     document = doc.envelope("result.check", f"ancp-{adapter.key}-compiler-proxy")
     document.update(
         {
             "status": "failed" if diagnostics else ("passed" if result.exit_code == 0 else "tool_failed"),
             "workspace": doc.workspace_object(root),
-            "run": command_run_object(result),
+            "run": run_object,
             "toolchain": [
                 {
                     "name": native_command[0],
@@ -96,18 +101,100 @@ def proxy_document(
                 "integrationMode": "compiler-proxy",
                 "nativeExitCode": result.exit_code,
                 "passthrough": True,
+                "rawOutput": raw_output,
             },
         }
     )
     if result.exit_code not in (0, None) and not diagnostics:
         document["data"]["stderrSummary"] = result.stderr[-4000:]
         document["data"]["stdoutSummary"] = result.stdout[-4000:]
+    annotate_signal_metrics(document, result.stdout, result.stderr)
     return document, result.exit_code if result.exit_code is not None else 2, result.stdout, result.stderr
 
 
-def write_proxy_output(document: dict[str, Any], out_path: pathlib.Path | None, root: pathlib.Path) -> pathlib.Path:
-    import json
+def write_raw_output(root: pathlib.Path, run_id: str, stdout: str, stderr: str) -> dict[str, Any]:
+    safe_run_id = "".join(ch if ch.isalnum() or ch in {"-", "_", "."} else "-" for ch in run_id)
+    run_dir = root / ".ancp" / "runs" / safe_run_id
+    run_dir.mkdir(parents=True, exist_ok=True)
+    stdout_path = run_dir / "stdout.txt"
+    stderr_path = run_dir / "stderr.txt"
+    combined_path = run_dir / "native.log"
+    stdout_path.write_text(stdout, encoding="utf-8", errors="replace")
+    stderr_path.write_text(stderr, encoding="utf-8", errors="replace")
+    combined = "".join(
+        [
+            "ANCP native stdout\n",
+            stdout,
+            "\nANCP native stderr\n",
+            stderr,
+        ]
+    )
+    combined_path.write_text(combined, encoding="utf-8", errors="replace")
+    native_text = stdout + stderr
+    return {
+        "stdoutPath": str(stdout_path),
+        "stderrPath": str(stderr_path),
+        "combinedPath": str(combined_path),
+        "stdoutUri": path_to_uri(stdout_path),
+        "stderrUri": path_to_uri(stderr_path),
+        "combinedUri": path_to_uri(combined_path),
+        "nativeBytes": len(native_text.encode("utf-8", errors="replace")),
+        "nativeSha256": sha256_text(native_text),
+    }
 
+
+def annotate_signal_metrics(document: dict[str, Any], stdout: str, stderr: str) -> None:
+    native_text = stdout + stderr
+    native_tokens = estimate_tokens(native_text)
+    compact_tokens = estimate_tokens(render_text(document, max_diagnostics=12, token_budget=None))
+    savings = 0
+    if native_tokens:
+        savings = max(0, round((1 - (compact_tokens / native_tokens)) * 100))
+    document.setdefault("data", {})["signalMetrics"] = {
+        "nativeBytes": len(native_text.encode("utf-8", errors="replace")),
+        "compactBytes": 0,
+        "estimatedNativeTokens": native_tokens,
+        "estimatedCompactTokens": compact_tokens,
+        "estimatedSavingsPercent": savings,
+        "renderer": "raw-text",
+    }
+    final_compact = render_text(document, max_diagnostics=12, token_budget=None)
+    final_compact_tokens = estimate_tokens(final_compact)
+    final_savings = max(0, round((1 - (final_compact_tokens / native_tokens)) * 100)) if native_tokens else 0
+    document["data"]["signalMetrics"].update(
+        {
+            "compactBytes": len(final_compact.encode("utf-8", errors="replace")),
+            "estimatedCompactTokens": final_compact_tokens,
+            "estimatedSavingsPercent": final_savings,
+        }
+    )
+
+
+def format_proxy_output(
+    document: dict[str, Any],
+    stdout: str,
+    stderr: str,
+    mode: str = "passthrough",
+    token_budget: int | None = None,
+) -> tuple[str, str]:
+    normalized = mode.lower().replace("_", "-")
+    if normalized in {"passthrough", "native", "raw"}:
+        return stdout, stderr
+    if normalized in {"compact", "text", "minimal"}:
+        return render_text(document, token_budget=token_budget), ""
+    if normalized in {"json", "result"}:
+        return json.dumps(document, indent=2) + "\n", ""
+    if normalized in {"both", "native-and-compact"}:
+        compact = render_text(document, token_budget=token_budget)
+        return stdout, stderr + ("\n" if stderr and not stderr.endswith("\n") else "") + compact
+    if normalized in {"auto", "auto-compact", "agent"}:
+        if document.get("status") == "passed":
+            return stdout, stderr
+        return render_text(document, token_budget=token_budget), ""
+    raise ValueError(f"unknown ANCP output mode: {mode}")
+
+
+def write_proxy_output(document: dict[str, Any], out_path: pathlib.Path | None, root: pathlib.Path) -> pathlib.Path:
     target = out_path or (root / ".ancp" / "last-check.json")
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(document, indent=2), encoding="utf-8")
@@ -119,6 +206,8 @@ def compile_main(argv: list[str] | None = None) -> int:
     parser.add_argument("adapter", help="Adapter key, such as typescript, rust, kotlin, julia.")
     parser.add_argument("--workspace", default=".", help="Workspace root. Defaults to current directory.")
     parser.add_argument("--ancp-out", default=None, help="Where to write ANCP JSON. Defaults to .ancp/last-check.json.")
+    parser.add_argument("--ancp-output", default=None, help="Output mode: passthrough, auto-compact, compact, json, both.")
+    parser.add_argument("--ancp-budget", type=int, default=None, help="Approximate token budget for compact text output.")
     parser.add_argument("--timeout", type=int, default=120)
     parser.add_argument("command", nargs=argparse.REMAINDER, help="Native command after --.")
     args = parser.parse_args(argv)
@@ -133,8 +222,10 @@ def compile_main(argv: list[str] | None = None) -> int:
     if errors:
         document.setdefault("data", {})["validationErrors"] = errors
     write_proxy_output(document, pathlib.Path(args.ancp_out) if args.ancp_out else None, root)
-    sys.stdout.write(stdout)
-    sys.stderr.write(stderr)
+    output_mode = args.ancp_output or "passthrough"
+    final_stdout, final_stderr = format_proxy_output(document, stdout, stderr, output_mode, args.ancp_budget)
+    sys.stdout.write(final_stdout)
+    sys.stderr.write(final_stderr)
     return exit_code
 
 
@@ -143,6 +234,8 @@ def shim_main(shim_name: str, argv: list[str] | None = None) -> int:
     adapter_key, native = SHIM_TO_ADAPTER_AND_COMMAND[shim_name]
     out_path: pathlib.Path | None = None
     timeout = 120
+    output_mode: str | None = None
+    token_budget: int | None = None
     workspace = pathlib.Path.cwd()
     native_args: list[str] = []
     i = 0
@@ -160,6 +253,14 @@ def shim_main(shim_name: str, argv: list[str] | None = None) -> int:
             timeout = int(argv[i + 1])
             i += 2
             continue
+        if arg == "--ancp-output" and i + 1 < len(argv):
+            output_mode = argv[i + 1]
+            i += 2
+            continue
+        if arg == "--ancp-budget" and i + 1 < len(argv):
+            token_budget = int(argv[i + 1])
+            i += 2
+            continue
         native_args.append(arg)
         i += 1
     root = find_workspace(workspace)
@@ -169,8 +270,16 @@ def shim_main(shim_name: str, argv: list[str] | None = None) -> int:
     if errors:
         document.setdefault("data", {})["validationErrors"] = errors
     write_proxy_output(document, out_path, root)
-    sys.stdout.write(stdout)
-    sys.stderr.write(stderr)
+    env_budget = int(os.environ["ANCP_OUTPUT_BUDGET"]) if os.environ.get("ANCP_OUTPUT_BUDGET") else None
+    final_stdout, final_stderr = format_proxy_output(
+        document,
+        stdout,
+        stderr,
+        output_mode or os.environ.get("ANCP_OUTPUT_MODE", "passthrough"),
+        token_budget or env_budget,
+    )
+    sys.stdout.write(final_stdout)
+    sys.stderr.write(final_stderr)
     return exit_code
 
 

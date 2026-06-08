@@ -27,6 +27,7 @@ This repository is the public ANCP 1.0 contract and Python reference implementat
 | Example protocol documents | Written | [examples](examples) |
 | Reference CLI/package | Implemented | [src/ancp](src/ancp) |
 | Compiler-name shim layer | Implemented | [docs/invisible-compiler-layer.md](docs/invisible-compiler-layer.md) |
+| Compact agent signal layer | Implemented | [docs/compact-signal-layer.md](docs/compact-signal-layer.md) |
 | Native-tool adapters | Implemented | [src/ancp/adapters](src/ancp/adapters) |
 | Bug corpus | Implemented | [examples/buggy](examples/buggy) |
 | Repository verifier | Implemented | [tools/verify_repo.py](tools/verify_repo.py) |
@@ -55,11 +56,26 @@ compiler / linter / test / LSP / build tool
           language adapter
                  |
                  v
-       ANCP JSON documents
+      ANCP JSON documents
                  |
                  v
       agents, IDEs, CI, repair bots
 ```
+
+For agent terminals, ANCP can also render compact raw text from the same JSON:
+
+```text
+normal compiler command
+        |
+        v
+ANCP result.check JSON + raw native logs
+        |
+        v
+minimal root-cause text for agents
+```
+
+See [Compact Signal Layer](docs/compact-signal-layer.md) for `ancp enable`,
+`auto-compact`, token savings telemetry, and raw-output fallback behavior.
 
 ## Design Principles
 

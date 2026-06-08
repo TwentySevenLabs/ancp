@@ -27,6 +27,10 @@ ancp repair --apply <plan-file> --json
 ancp verify --json
 ancp graph --json
 ancp skills --json
+ancp render --from check-result.json --format text
+ancp enable
+ancp disable
+ancp status
 ancp export sarif --out ancp.sarif
 ```
 
@@ -230,6 +234,47 @@ Emits: `result.skills`
 Required profile: `skills`
 
 Skills should be concise operational instructions, not full language manuals.
+
+## `render`
+
+Renders ANCP JSON into a user- or agent-facing text format.
+
+```bash
+ancp render --from check-result.json --format markdown
+ancp render --from check-result.json --format text --budget 800
+```
+
+Markdown output is intended for human inspection. Text output is the compact
+agent signal format: no Markdown fences, no tables, root-cause groups first,
+raw-output fallback path included when available.
+
+## `enable`, `disable`, `uninstall`, and `status`
+
+Manages native-name shims for invisible compiler integration.
+
+```bash
+ancp enable
+ancp enable --dry-run
+ancp enable --scope session
+ancp enable --profile full
+ancp disable
+ancp uninstall
+ancp status
+```
+
+`enable` installs compiler/tool shims and configures `auto-compact` output by
+default. On Windows, `--scope user` prepends the ANCP shim directory to the user
+PATH. `--scope session` prints activation commands without mutating persistent
+PATH.
+
+Profiles:
+
+- `agent`: default compiler/build/lint/test tool interception.
+- `full`: includes shell tools such as `powershell`, `pwsh`, and `bash`.
+
+`disable` removes ANCP from the user PATH without deleting shims. `uninstall`
+disables ANCP and removes the shim directory. `status` reports installation,
+PATH, and state metadata.
 
 ## `export`
 

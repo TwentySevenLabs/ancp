@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 from ancp.cli import install_shims
-from ancp.install import enable, uninstall, write_shims
+from ancp.install import enable, status, uninstall, write_shims
 from ancp.proxy import format_proxy_output
 from ancp.proxy import proxy_document
 from ancp.schema import validate_document
@@ -88,6 +88,14 @@ def test_uninstall_dry_run_reports_without_removing_shims(tmp_path: Path) -> Non
     assert payload["wouldRemoveShimDirectory"] is True
     assert payload["removedShimDirectory"] is False
     assert (shim_dir / ("python.cmd" if os.name == "nt" else "python")).exists()
+
+
+def test_status_requires_at_least_one_shim(tmp_path: Path) -> None:
+    home = tmp_path / "ancp-home"
+    (home / "bin").mkdir(parents=True)
+    payload = status(home=home)
+    assert payload["shimCount"] == 0
+    assert payload["installed"] is False
 
 
 def test_find_real_executable_skips_other_ancp_shims(tmp_path: Path, monkeypatch) -> None:

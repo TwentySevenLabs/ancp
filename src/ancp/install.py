@@ -305,8 +305,8 @@ def status(*, home: pathlib.Path | None = None) -> dict[str, Any]:
     resolved_home = (home or default_home()).resolve()
     shim_dir = default_shim_dir(resolved_home)
     path_value = user_path_value() if os.name == "nt" else os.environ.get("PATH", "")
-    installed = shim_dir.exists()
-    shim_count = len(list(shim_dir.glob("*.cmd" if os.name == "nt" else "*"))) if installed else 0
+    shim_count = len(list(shim_dir.glob("*.cmd" if os.name == "nt" else "*"))) if shim_dir.exists() else 0
+    installed = shim_count > 0
     return {
         "ancpVersion": __version__,
         "home": str(resolved_home),

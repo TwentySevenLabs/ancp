@@ -12,8 +12,13 @@ from typing import Any
 from . import __version__
 from .adapters import ADAPTERS, get_adapter, matching_adapters
 from .documents import envelope, producer, workspace_object
+from .install import disable as disable_ancp
+from .install import enable as enable_ancp
+from .install import status as install_status
+from .install import uninstall as uninstall_ancp
+from .install import write_shims
 from .proxy import compile_main
-from .render import render_markdown
+from .render import render_markdown, render_text
 from .schema import load_schema, validate_document, validate_path
 from .shim import executable_names
 from .util import find_workspace, read_json, write_json_stdout
@@ -370,48 +375,13 @@ def skills_document() -> dict[str, Any]:
     return document
 
 
-def install_shims(directory: pathlib.Path, force: bool = False) -> list[pathlib.Path]:
-    directory.mkdir(parents=True, exist_ok=True)
-    created: list[pathlib.Path] = []
-    python_exe = pathlib.Path(sys.executable).resolve()
-    for name in executable_names():
-        if os.name == "nt":
-            target = directory / f"{name}.cmd"
-            if target.exists() and not force:
-                continue
-            target.write_text(
-                "\n".join(
-                    [
-                        "@echo off",
-                        "setlocal",
-                        "set ANCP_SHIM_DIR=%~dp0",
-                        f'"{python_exe}" -m ancp.shim {name} %*',
-                        "exit /b %ERRORLEVEL%",
-                        "",
-                    ]
-                ),
-                encoding="utf-8",
-            )
-            created.append(target)
-        else:
-            target = directory / name
-            if target.exists() and not force:
-                continue
-            target.write_text(
-                "\n".join(
-                    [
-                        "#!/usr/bin/env sh",
-                        'ANCP_SHIM_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"',
-                        "export ANCP_SHIM_DIR",
-                        f'exec "{python_exe}" -m ancp.shim {name} "$@"',
-                        "",
-                    ]
-                ),
-                encoding="utf-8",
-            )
-            target.chmod(0o755)
-            created.append(target)
-    return created
+def install_shims(
+    directory: pathlib.Path,
+    force: bool = False,
+    output_mode: str = "passthrough",
+    output_budget: int | None = None,
+) -> list[pathlib.Path]:
+    return write_shims(directory, force=force, output_mode=output_mode, output_budget=output_budget)
 
 
 def install_shims_document(root: pathlib.Path, directory: pathlib.Path, created: list[pathlib.Path]) -> dict[str, Any]:
@@ -500,6 +470,29 @@ def build_parser() -> argparse.ArgumentParser:
     shims.add_argument("--workspace", default=None)
     shims.add_argument("--dir", default=".ancp/bin")
     shims.add_argument("--force", action="store_true")
+    shims.add_argument("--output-mode", default="passthrough", choices=["passthrough", "auto-compact", "compact", "json", "both"])
+    shims.add_argument("--output-budget", type=int, default=None)
+
+    enable = sub.add_parser("enable")
+    enable.add_argument("--scope", default="user", choices=["user", "session"])
+    enable.add_argument("--profile", default="agent", choices=["agent", "full"])
+    enable.add_argument("--home", default=None)
+    enable.add_argument("--force", action="store_true")
+    enable.add_argument("--dry-run", action="store_true")
+    enable.add_argument("--output-mode", default="auto-compact", choices=["passthrough", "auto-compact", "compact", "json", "both"])
+    enable.add_argument("--output-budget", type=int, default=800)
+
+    disable = sub.add_parser("disable")
+    disable.add_argument("--scope", default="user", choices=["user", "session"])
+    disable.add_argument("--home", default=None)
+    disable.add_argument("--dry-run", action="store_true")
+
+    uninstall = sub.add_parser("uninstall")
+    uninstall.add_argument("--home", default=None)
+    uninstall.add_argument("--dry-run", action="store_true")
+
+    status_parser = sub.add_parser("status")
+    status_parser.add_argument("--home", default=None)
 
     validate = sub.add_parser("validate")
     validate.add_argument("paths", nargs="+")
@@ -507,6 +500,8 @@ def build_parser() -> argparse.ArgumentParser:
     render = sub.add_parser("render")
     render.add_argument("--from", dest="from_path", required=True)
     render.add_argument("--max-diagnostics", type=int, default=40)
+    render.add_argument("--format", default="markdown", choices=["markdown", "text"])
+    render.add_argument("--budget", type=int, default=None)
 
     schema = sub.add_parser("schema")
     schema.add_argument("--print", action="store_true", dest="print_schema")
@@ -553,14 +548,45 @@ def main(argv: list[str] | None = None) -> int:
         shim_dir = pathlib.Path(args.dir)
         if not shim_dir.is_absolute():
             shim_dir = root / shim_dir
-        created = install_shims(shim_dir, force=args.force)
+        created = install_shims(shim_dir, force=args.force, output_mode=args.output_mode, output_budget=args.output_budget)
         write_json_stdout(install_shims_document(root, shim_dir, created))
+        return 0
+    if args.command == "enable":
+        write_json_stdout(
+            enable_ancp(
+                scope=args.scope,
+                profile=args.profile,
+                home=pathlib.Path(args.home) if args.home else None,
+                force=args.force,
+                dry_run=args.dry_run,
+                output_mode=args.output_mode,
+                output_budget=args.output_budget,
+            )
+        )
+        return 0
+    if args.command == "disable":
+        write_json_stdout(
+            disable_ancp(
+                scope=args.scope,
+                home=pathlib.Path(args.home) if args.home else None,
+                dry_run=args.dry_run,
+            )
+        )
+        return 0
+    if args.command == "uninstall":
+        write_json_stdout(uninstall_ancp(home=pathlib.Path(args.home) if args.home else None, dry_run=args.dry_run))
+        return 0
+    if args.command == "status":
+        write_json_stdout(install_status(home=pathlib.Path(args.home) if args.home else None))
         return 0
     if args.command == "validate":
         return validate_command(args)
     if args.command == "render":
         document = read_json(pathlib.Path(args.from_path))
-        print(render_markdown(document, max_diagnostics=args.max_diagnostics))
+        if args.format == "text":
+            print(render_text(document, max_diagnostics=args.max_diagnostics, token_budget=args.budget))
+        else:
+            print(render_markdown(document, max_diagnostics=args.max_diagnostics))
         return 0
     if args.command == "schema":
         write_json_stdout(load_schema())

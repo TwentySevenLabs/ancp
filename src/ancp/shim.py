@@ -14,7 +14,7 @@ import shutil
 import sys
 from typing import Iterable
 
-from .proxy import proxy_document, write_proxy_output
+from .proxy import format_proxy_output, proxy_document, write_proxy_output
 from .schema import validate_document
 from .util import find_workspace, is_ancp_shim_path
 
@@ -106,13 +106,16 @@ def run_native_name(native_name: str, argv: list[str], shim_dir: pathlib.Path | 
     root = pathlib.Path(os.environ["ANCP_WORKSPACE"]).resolve() if os.environ.get("ANCP_WORKSPACE") else pathlib.Path.cwd().resolve()
     timeout = int(os.environ.get("ANCP_TIMEOUT", "120"))
     out = pathlib.Path(os.environ["ANCP_OUT"]) if os.environ.get("ANCP_OUT") else None
+    output_mode = os.environ.get("ANCP_OUTPUT_MODE", "passthrough")
+    output_budget = int(os.environ["ANCP_OUTPUT_BUDGET"]) if os.environ.get("ANCP_OUTPUT_BUDGET") else None
     document, exit_code, stdout, stderr = proxy_document(adapter, [real, *argv], root, timeout)
     errors = validate_document(document)
     if errors:
         document.setdefault("data", {})["validationErrors"] = errors
     write_proxy_output(document, out, root)
-    sys.stdout.write(stdout)
-    sys.stderr.write(stderr)
+    final_stdout, final_stderr = format_proxy_output(document, stdout, stderr, output_mode, output_budget)
+    sys.stdout.write(final_stdout)
+    sys.stderr.write(final_stderr)
     return exit_code
 
 

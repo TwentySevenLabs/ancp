@@ -11,6 +11,7 @@ from __future__ import annotations
 import os
 import pathlib
 import shutil
+import subprocess
 import sys
 from typing import Iterable
 
@@ -22,6 +23,7 @@ from .util import find_workspace, is_ancp_shim_path
 NATIVE_TO_ADAPTER = {
     "tsc": "typescript",
     "eslint": "javascript",
+    "node": "javascript",
     "pyright": "python",
     "ruff": "python",
     "python": "python",
@@ -103,6 +105,19 @@ def run_native_name(native_name: str, argv: list[str], shim_dir: pathlib.Path | 
     if not real:
         print(f"ANCP shim could not find real executable for {native_name}", file=sys.stderr)
         return 127
+    if os.environ.get("ANCP_BYPASS"):
+        proc = subprocess.run(
+            [real, *argv],
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            shell=False,
+        )
+        sys.stdout.write(proc.stdout)
+        sys.stderr.write(proc.stderr)
+        return proc.returncode
     root = pathlib.Path(os.environ["ANCP_WORKSPACE"]).resolve() if os.environ.get("ANCP_WORKSPACE") else pathlib.Path.cwd().resolve()
     timeout = int(os.environ.get("ANCP_TIMEOUT", "120"))
     out = pathlib.Path(os.environ["ANCP_OUT"]) if os.environ.get("ANCP_OUT") else None

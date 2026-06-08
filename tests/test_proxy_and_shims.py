@@ -33,7 +33,7 @@ def test_proxy_preserves_python_failure_and_emits_valid_ancp(tmp_path: Path) -> 
     raw = document["data"]["rawOutput"]
     assert Path(raw["combinedPath"]).exists()
     assert document["data"]["signalMetrics"]["estimatedNativeTokens"] >= 1
-    assert document["data"]["signalMetrics"]["renderer"] == "raw-text"
+    assert document["data"]["signalMetrics"]["renderer"] == "ultra"
 
 
 def test_auto_compact_replaces_failure_output_with_minimal_signal(tmp_path: Path) -> None:
@@ -47,24 +47,28 @@ def test_auto_compact_replaces_failure_output_with_minimal_signal(tmp_path: Path
     )
     compact_stdout, compact_stderr = format_proxy_output(document, stdout, stderr, "auto-compact", 120)
     assert compact_stderr == ""
-    assert "ANCP result.check failed" in compact_stdout
-    assert "code=ancp.diag.syntax.invalid" in compact_stdout
+    assert "ANCP" not in compact_stdout
+    assert "result.check" not in compact_stdout
+    assert "raw=" not in compact_stdout
     assert "SyntaxError" in compact_stdout
     assert "File \"" not in compact_stdout
+    assert len(compact_stdout) < len(stderr)
 
 
 def test_install_shims_creates_native_names(tmp_path: Path) -> None:
     shim_dir = tmp_path / "bin"
-    created = install_shims(shim_dir, force=True, output_mode="auto-compact", output_budget=800)
+    created = install_shims(shim_dir, force=True, output_mode="auto-ultra", output_budget=200)
     assert created
     if os.name == "nt":
         assert (shim_dir / "cargo.cmd").exists()
+        assert (shim_dir / "node.cmd").exists()
         assert (shim_dir / "python.cmd").exists()
-        assert "ANCP_OUTPUT_MODE=auto-compact" in (shim_dir / "python.cmd").read_text(encoding="utf-8")
+        assert "ANCP_OUTPUT_MODE=auto-ultra" in (shim_dir / "python.cmd").read_text(encoding="utf-8")
     else:
         assert (shim_dir / "cargo").exists()
+        assert (shim_dir / "node").exists()
         assert (shim_dir / "python").exists()
-        assert "ANCP_OUTPUT_MODE=\"auto-compact\"" in (shim_dir / "python").read_text(encoding="utf-8")
+        assert "ANCP_OUTPUT_MODE=\"auto-ultra\"" in (shim_dir / "python").read_text(encoding="utf-8")
 
 
 def test_enable_dry_run_profiles_global_shims_without_mutating_path(tmp_path: Path) -> None:
@@ -72,7 +76,7 @@ def test_enable_dry_run_profiles_global_shims_without_mutating_path(tmp_path: Pa
     assert payload["dryRun"] is True
     assert payload["enabled"] is False
     assert payload["wouldEnable"] is True
-    assert payload["outputMode"] == "auto-compact"
+    assert payload["outputMode"] == "auto-ultra"
     assert "python" in payload["tools"]
     assert "powershell" not in payload["tools"]
     assert payload["wouldCreate"]

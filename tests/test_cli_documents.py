@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import json
+import sys
 from pathlib import Path
 
-from ancp.cli import aggregate_status, capabilities_document, graph_document, resolve_workspace, skills_document, verify_document
+from ancp.cli import aggregate_status, capabilities_document, graph_document, main, resolve_workspace, skills_document, verify_document
 from ancp.adapters import get_adapter
 from ancp.schema import validate_document
 
@@ -64,3 +66,64 @@ def test_internal_json_toml_yaml_adapters_validate(tmp_path: Path) -> None:
         assert document["status"] == "failed"
         assert document["diagnostics"]
         assert validate_document(document) == []
+
+
+def test_javascript_adapter_accepts_node_check_fallback(tmp_path: Path) -> None:
+    (tmp_path / "broken.js").write_text("function broken( {\n", encoding="utf-8")
+    adapter = get_adapter("javascript")
+    assert adapter is not None
+    document = adapter.check(tmp_path)
+    if document["status"] == "failed":
+        assert document["diagnostics"]
+        assert document["diagnostics"][0]["canonicalCode"] == "ancp.diag.syntax.invalid"
+    else:
+        assert document["status"] == "tool_failed"
+    assert validate_document(document) == []
+
+
+def test_raw_command_reads_recorded_native_log(tmp_path: Path, capsys) -> None:
+    raw_log = tmp_path / "native.log"
+    raw_log.write_text("native error text\n", encoding="utf-8")
+    check = tmp_path / "last-check.json"
+    check.write_text(
+        json.dumps({"documentKind": "result.check", "data": {"rawOutput": {"combinedPath": str(raw_log)}}}),
+        encoding="utf-8",
+    )
+    assert main(["raw", "--from", str(check)]) == 0
+    assert capsys.readouterr().out == "native error text\n"
+
+
+def test_render_ultra_command_does_not_add_extra_blank_line(tmp_path: Path, capsys) -> None:
+    check = tmp_path / "last-check.json"
+    check.write_text(
+        json.dumps(
+            {
+                "documentKind": "result.check",
+                "status": "failed",
+                "diagnostics": [
+                    {
+                        "id": "d1",
+                        "canonicalCode": "ancp.diag.syntax.invalid",
+                        "nativeCode": "SyntaxError",
+                        "severity": "error",
+                        "kind": "syntax",
+                        "message": "SyntaxError: expected ':'",
+                        "primaryLocation": {
+                            "artifact": {"uri": "file:///repo/src/app.py"},
+                            "range": {"start": {"line": 14, "character": 0}},
+                        },
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    assert main(["render", "--from", str(check), "--format", "ultra"]) == 0
+    assert capsys.readouterr().out == "SyntaxError src/app.py:15 expected ':'\n"
+
+
+def test_off_command_runs_native_command_without_ancp(capsys) -> None:
+    assert main(["off", "--", sys.executable, "-c", "print('native')"]) == 0
+    captured = capsys.readouterr()
+    assert captured.out == "native\n"
+    assert captured.err == ""

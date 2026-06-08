@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ancp.render import render_markdown, render_text
+from ancp.render import render_markdown, render_text, render_ultra
 
 
 def test_render_groups_and_compresses_diagnostics() -> None:
@@ -96,3 +96,73 @@ def test_render_text_is_minimal_and_budgeted() -> None:
     assert "tokens native~1000 compact~80 saved~92%" in text
     assert "code=ancp.diag.syntax.invalid native=SyntaxError" in text
     assert "fix=Fix Python syntax [review_required] c=0.40" in text
+
+
+def test_render_ultra_hides_protocol_metadata() -> None:
+    document = {
+        "documentKind": "result.check",
+        "status": "failed",
+        "data": {
+            "rawOutput": {"combinedPath": ".ancp/runs/abc/native.log"},
+            "signalMetrics": {"estimatedNativeTokens": 1000, "estimatedCompactTokens": 80, "estimatedSavingsPercent": 92},
+        },
+        "diagnostics": [
+            {
+                "id": "d1",
+                "canonicalCode": "ancp.diag.syntax.invalid",
+                "nativeCode": "SyntaxError",
+                "severity": "error",
+                "kind": "syntax",
+                "message": "SyntaxError: expected ':'",
+                "primaryLocation": {
+                    "artifact": {"uri": "file:///repo/src/app.py"},
+                    "range": {"start": {"line": 14, "character": 0}},
+                },
+                "repairHints": [
+                    {
+                        "repairId": "ancp.repair.syntax.insert_token",
+                        "title": "Fix Python syntax",
+                        "confidence": 0.4,
+                        "safetyLevel": "review_required",
+                    }
+                ],
+            }
+        ],
+    }
+    ultra = render_ultra(document)
+    assert ultra == "SyntaxError src/app.py:15 expected ':' fix:fix syntax\n"
+    assert "ANCP" not in ultra
+    assert "result.check" not in ultra
+    assert "raw=" not in ultra
+    assert "tokens" not in ultra
+
+
+def test_render_ultra_shortens_missing_import_noise() -> None:
+    document = {
+        "documentKind": "result.check",
+        "status": "failed",
+        "diagnostics": [
+            {
+                "id": "d1",
+                "canonicalCode": "ancp.diag.import.missing",
+                "severity": "error",
+                "kind": "import",
+                "message": "package not/a/real/package is not in std (C:\\Program Files\\Go\\src\\not\\a\\real\\package)",
+                "primaryLocation": {
+                    "artifact": {"uri": "file:///repo/go/main.go"},
+                    "range": {"start": {"line": 3, "character": 7}},
+                },
+                "repairHints": [
+                    {
+                        "repairId": "ancp.repair.module.add_dependency",
+                        "title": "Add or fix the missing dependency/import path",
+                        "confidence": 0.5,
+                        "safetyLevel": "review_required",
+                    }
+                ],
+            }
+        ],
+    }
+    ultra = render_ultra(document)
+    assert ultra == "import.missing go/main.go:4 not/a/real/package not found fix:fix import\n"
+    assert "Program Files" not in ultra

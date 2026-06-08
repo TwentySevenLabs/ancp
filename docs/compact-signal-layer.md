@@ -15,8 +15,8 @@ smaller and more stable signal:
 - primary source location,
 - root-cause grouping,
 - repair direction,
-- raw output fallback path,
-- token/byte savings telemetry.
+- raw output fallback available by command,
+- token/byte savings telemetry in JSON.
 
 The compact signal layer does not replace the ANCP JSON contract. It renders the
 JSON into minimal raw text for agent context.
@@ -43,42 +43,47 @@ raw stdout/stderr saved under .ancp/runs/<run-id>/
 result.check JSON written to .ancp/last-check.json
         |
         v
-compact raw text emitted to the agent when the command fails
+ultra-minimal error text emitted to the agent when the command fails
 ```
 
-Successful commands pass through by default in `auto-compact` mode. Failed
-commands emit compact ANCP text and keep full native output on disk.
+Successful commands pass through by default in `auto-ultra` mode. Failed
+commands emit surgical one-line ANCP text and keep full native output on disk.
 
 ## Output Modes
 
 | Mode | Behavior |
 |---|---|
 | `passthrough` | Print native stdout/stderr exactly as emitted. |
-| `auto-compact` | Print native output for successful commands; print compact ANCP text for failed commands. |
+| `auto-ultra` | Print native output for successful commands; print the shortest useful ANCP text for failed commands. |
+| `auto-compact` | Compatibility alias for auto-ultra failure rendering. |
+| `ultra` | Always print ultra-minimal ANCP text. |
 | `compact` | Always print compact ANCP raw text. |
 | `json` | Print the full `result.check` JSON document. |
 | `both` | Print native output and append compact ANCP text. |
 
 Project-local shims default to `passthrough` unless configured otherwise.
-`ancp enable` defaults to `auto-compact`.
+`ancp enable` defaults to `auto-ultra`.
 
-## Minimal Text Format
+## Ultra Text Format
 
-The compact text intentionally avoids Markdown syntax. It is designed for agent
-context, not documentation.
+The default failure output intentionally avoids Markdown syntax, protocol names,
+raw log paths, token stats, and guidance. It is designed to be smaller than the
+useful portion of the native error when possible.
 
 ```text
-ANCP result.check failed diagnostics=1
-exit=1 durationMs=92
-raw=C:\repo\.ancp\runs\sha256-abc\native.log
-tokens native~2400 compact~180 saved~92%
-summary severity=error:1 kind=syntax:1
-root_causes=1
-1. code=ancp.diag.syntax.invalid native=SyntaxError kind=syntax count=1
-   at=C:/repo/app.py:15:1
-   msg=SyntaxError: expected ':'
-   fix=Fix Python syntax [review_required] c=0.40
-agent_next=fix root_causes first; rerun native command before claiming verified
+SyntaxError src/app.py:15 expected ':' fix:fix syntax
+```
+
+For repeated failures, ANCP groups by root cause:
+
+```text
+TS2304 src/app.ts:8 Cannot find name 'user' x14 fix:import symbol
+```
+
+The richer compact renderer is still available when wanted:
+
+```powershell
+ancp render --from .ancp\last-check.json --format text --budget 800
 ```
 
 ## Global Windows Enablement
@@ -128,7 +133,7 @@ $env:PATH="$HOME\.ancp\bin;$env:PATH"
 Render compact text from any ANCP JSON document:
 
 ```powershell
-ancp render --from .ancp\last-check.json --format text --budget 800
+ancp render --from .ancp\last-check.json --format ultra --budget 200
 ```
 
 Render Markdown for human inspection:
@@ -136,6 +141,35 @@ Render Markdown for human inspection:
 ```powershell
 ancp render --from .ancp\last-check.json --format markdown
 ```
+
+## Raw Output And Bypass
+
+Raw logs are saved but not printed in ultra output. Show the latest native log:
+
+```powershell
+ancp raw
+```
+
+Print only the raw log path:
+
+```powershell
+ancp raw --path
+```
+
+Show raw stderr from the latest run:
+
+```powershell
+ancp raw --stream stderr
+```
+
+Run a command without ANCP interception:
+
+```powershell
+ancp off -- python -m py_compile app.py
+```
+
+This is the intended manual escape hatch when an agent or user wants native
+errors exactly as the compiler produced them.
 
 ## Raw Output Contract
 
@@ -158,9 +192,9 @@ Every proxied run also records `data.signalMetrics`:
   "nativeBytes": 2048,
   "compactBytes": 420,
   "estimatedNativeTokens": 512,
-  "estimatedCompactTokens": 105,
-  "estimatedSavingsPercent": 79,
-  "renderer": "raw-text"
+  "estimatedCompactTokens": 20,
+  "estimatedSavingsPercent": 96,
+  "renderer": "ultra"
 }
 ```
 

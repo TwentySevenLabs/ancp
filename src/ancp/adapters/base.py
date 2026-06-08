@@ -276,9 +276,30 @@ class JavaScriptAdapter(Adapter):
     tools = [
         ToolSpec("eslint", "linter", ["eslint", "--format", "json", "."]),
         ToolSpec("eslint", "linter", ["npx", "--no-install", "eslint", "--format", "json", "."], version_args=["npx", "--no-install", "eslint", "--version"]),
+        ToolSpec("node", "compiler", ["node", "--check"], version_args=["node", "--version"]),
     ]
 
+    def run_check(self, root: pathlib.Path, tool: ToolSpec, timeout: int) -> CommandResult:
+        if tool.name != "node":
+            return run_command(tool.command, root, timeout)
+        files = [path for path in list_files(root, self.file_extensions, limit=100) if path.suffix.lower() in {".js", ".mjs", ".cjs"}]
+        if not files:
+            return run_command(["node", "--version"], root, timeout=timeout)
+        stdout: list[str] = []
+        stderr: list[str] = []
+        last: CommandResult | None = None
+        for path in files:
+            last = run_command(["node", "--check", str(path)], root, timeout=timeout)
+            stdout.append(last.stdout)
+            stderr.append(last.stderr)
+            if last.exit_code not in (0, None):
+                break
+        assert last is not None
+        return CommandResult(last.argv, root, last.started_at, last.ended_at, last.duration_ms, last.exit_code, "\n".join(stdout), "\n".join(stderr))
+
     def parse_result(self, root: pathlib.Path, result: CommandResult, tool: ToolSpec) -> list[dict[str, Any]]:
+        if tool.name == "node":
+            return self._parse_node_check(root, result.stderr + "\n" + result.stdout)
         import json
 
         try:
@@ -310,6 +331,43 @@ class JavaScriptAdapter(Adapter):
                         {"native": msg},
                     )
                 )
+        return diagnostics
+
+    def _parse_node_check(self, root: pathlib.Path, text: str) -> list[dict[str, Any]]:
+        import re
+
+        diagnostics: list[dict[str, Any]] = []
+        pattern = re.compile(r"^(?P<file>.+?\.(?:cjs|mjs|js)):(?P<line>\d+)$")
+        lines = text.splitlines()
+        for index, line in enumerate(lines):
+            match = pattern.match(line.strip())
+            if not match:
+                continue
+            message = "JavaScript syntax error"
+            native_code = "SyntaxError"
+            for candidate in lines[index + 1 : index + 10]:
+                stripped = candidate.strip()
+                if stripped.startswith("SyntaxError:"):
+                    message = stripped.removeprefix("SyntaxError:").strip()
+                    break
+            path = pathlib.Path(match.group("file"))
+            if not path.is_absolute():
+                path = (root / path).resolve()
+            canonical, kind, hints = canonical_for_native(native_code, message)
+            diagnostics.append(
+                doc.diagnostic(
+                    f"diag-node-{len(diagnostics) + 1:04d}",
+                    canonical,
+                    native_code,
+                    "error",
+                    kind,
+                    message,
+                    doc.location(path, "javascript", int(match.group("line")) - 1, 0),
+                    "node",
+                    hints,
+                    {"raw": "\n".join(lines[index : index + 8])},
+                )
+            )
         return diagnostics
 
 
@@ -499,6 +557,14 @@ class DotnetAdapter(Adapter):
     file_extensions = {".cs", ".fs", ".vb"}
     markers = {".sln", ".csproj", ".fsproj", ".vbproj", "Directory.Build.props"}
     tools = [ToolSpec("dotnet", "build", ["dotnet", "build", "--nologo"])]
+
+    def available_tool(self) -> ToolSpec | None:
+        if not find_executable("dotnet"):
+            return None
+        result = run_command(["dotnet", "--list-sdks"], pathlib.Path.cwd(), timeout=10)
+        if result.exit_code in (0, None) and result.stdout.strip():
+            return self.tools[0]
+        return None
 
     def parse_result(self, root: pathlib.Path, result: CommandResult, tool: ToolSpec) -> list[dict[str, Any]]:
         return parse_text_lines(result.stdout + "\n" + result.stderr, DOTNET_RE, root, "csharp", "dotnet", "diag-dotnet")

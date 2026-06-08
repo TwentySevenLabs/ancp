@@ -27,7 +27,9 @@ ancp repair --apply <plan-file> --json
 ancp verify --json
 ancp graph --json
 ancp skills --json
-ancp render --from check-result.json --format text
+ancp render --from check-result.json --format ultra
+ancp raw
+ancp off -- <native-command>
 ancp enable
 ancp disable
 ancp status
@@ -242,11 +244,39 @@ Renders ANCP JSON into a user- or agent-facing text format.
 ```bash
 ancp render --from check-result.json --format markdown
 ancp render --from check-result.json --format text --budget 800
+ancp render --from check-result.json --format ultra --budget 200
 ```
 
 Markdown output is intended for human inspection. Text output is the compact
-agent signal format: no Markdown fences, no tables, root-cause groups first,
-raw-output fallback path included when available.
+agent signal format. Ultra output is the default terminal failure style:
+no protocol banner, no raw log path, no token stats, no Markdown fences, and no
+guidance unless explicitly requested elsewhere.
+
+## `raw`
+
+Prints raw native output captured by the latest or selected ANCP check result.
+
+```bash
+ancp raw
+ancp raw --path
+ancp raw --stream stderr
+ancp raw --from .ancp/last-check.json
+```
+
+Raw logs are saved by proxy/shim mode but not printed in ultra terminal output.
+`raw` is the explicit retrieval command.
+
+## `off`
+
+Runs a native command while bypassing ANCP interception.
+
+```bash
+ancp off -- python -m py_compile app.py
+ancp off -- cargo check
+```
+
+This command resolves the real executable while ignoring ANCP shim scripts, then
+prints native stdout/stderr exactly as the underlying tool produced them.
 
 ## `enable`, `disable`, `uninstall`, and `status`
 
@@ -262,7 +292,7 @@ ancp uninstall
 ancp status
 ```
 
-`enable` installs compiler/tool shims and configures `auto-compact` output by
+`enable` installs compiler/tool shims and configures `auto-ultra` output by
 default. On Windows, `--scope user` prepends the ANCP shim directory to the user
 PATH. `--scope session` prints activation commands without mutating persistent
 PATH.

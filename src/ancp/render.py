@@ -19,6 +19,24 @@ def _location_label(diagnostic: dict[str, Any]) -> str:
     return f"{uri}:{line}:{char}"
 
 
+def _short_location_label(diagnostic: dict[str, Any]) -> str:
+    loc = diagnostic.get("primaryLocation", {})
+    artifact = loc.get("artifact", {})
+    uri = artifact.get("uri", "")
+    rng = loc.get("range", {})
+    start = rng.get("start", {})
+    line = int(start.get("line", 0)) + 1
+    if uri.startswith("file://"):
+        uri = uri.replace("file:///", "").replace("file://", "")
+    if uri:
+        text = uri.replace("\\", "/")
+        parts = [part for part in text.split("/") if part]
+        short = "/".join(parts[-2:]) if len(parts) >= 2 else parts[0] if parts else "<unknown>"
+    else:
+        short = "<unknown>"
+    return f"{short}:{line}"
+
+
 def _repair_label(diagnostic: dict[str, Any]) -> str:
     hints = diagnostic.get("repairHints") or []
     if not hints:
@@ -40,6 +58,45 @@ def _repair_title(diagnostic: dict[str, Any]) -> str:
     if isinstance(confidence, int | float):
         suffix += f" c={confidence:.2f}"
     return title + suffix
+
+
+def _repair_ultra(diagnostic: dict[str, Any]) -> str:
+    hints = diagnostic.get("repairHints") or []
+    if not hints:
+        return ""
+    best = sorted(hints, key=lambda item: item.get("confidence", 0), reverse=True)[0]
+    title = best.get("title") or best.get("repairId") or ""
+    replacements = {
+        "Fix Python syntax": "fix syntax",
+        "Fix invalid syntax": "fix syntax",
+        "Import missing symbol": "import symbol",
+        "Add or fix the missing dependency/import path": "fix import",
+    }
+    return replacements.get(title, str(title).strip().lower())[:60]
+
+
+def _short_code(diagnostic: dict[str, Any]) -> str:
+    native = diagnostic.get("nativeCode")
+    canonical = str(diagnostic.get("canonicalCode", "diag")).removeprefix("ancp.diag.")
+    kind = str(diagnostic.get("kind", "")).strip()
+    if native and len(str(native)) <= 16 and str(native) not in {"ArgumentError"}:
+        return str(native)
+    if canonical:
+        return canonical
+    return kind or "diag"
+
+
+def _ultra_message(diagnostic: dict[str, Any]) -> str:
+    message = " ".join(str(diagnostic.get("message", "")).split())
+    native = diagnostic.get("nativeCode")
+    if native and message.lower().startswith(str(native).lower() + ":"):
+        message = message[len(str(native)) + 1 :].strip()
+    if diagnostic.get("kind") == "import":
+        message = message.removeprefix("package ")
+        if " is not in std " in message:
+            message = message.split(" is not in std ", 1)[0] + " not found"
+        message = message.replace("Package ", "").replace(" not found in current path.", " not found")
+    return message[:160]
 
 
 def _group_key(diagnostic: dict[str, Any]) -> tuple[str, str, str]:
@@ -241,3 +298,49 @@ def render_text(
     if include_guidance:
         lines.append("agent_next=fix root_causes first; rerun native command before claiming verified")
     return "\n".join(truncate_to_budget(lines, token_budget)).rstrip() + "\n"
+
+
+def render_ultra(document: dict[str, Any], max_groups: int = 8, token_budget: int | None = 200) -> str:
+    """Render the smallest useful agent-facing diagnostic output.
+
+    Ultra output intentionally hides protocol metadata, raw paths, token stats,
+    guidance, and document identity. Full detail remains in JSON/raw logs.
+    """
+
+    diagnostics = document.get("diagnostics") or []
+    data = document.get("data") or {}
+    if not diagnostics:
+        reason = data.get("stderrSummary") or data.get("stdoutSummary")
+        if reason:
+            text = " ".join(str(reason).split())[:180]
+            return truncate_text(f"tool_failed {text}\n", token_budget)
+        status = document.get("status", "ok")
+        return f"{status}\n"
+
+    grouped: dict[tuple[str, str, str], list[dict[str, Any]]] = defaultdict(list)
+    for diagnostic in diagnostics:
+        grouped[_group_key(diagnostic)].append(diagnostic)
+
+    lines: list[str] = []
+    for _, group in sorted(grouped.items(), key=lambda item: len(item[1]), reverse=True)[:max_groups]:
+        diagnostic = group[0]
+        count = f" x{len(group)}" if len(group) > 1 else ""
+        location = _short_location_label(diagnostic)
+        code = _short_code(diagnostic)
+        message = _ultra_message(diagnostic)
+        repair = _repair_ultra(diagnostic)
+        line = f"{code} {location} {message}{count}".strip()
+        if repair and repair not in line.lower():
+            line += f" fix:{repair}"
+        lines.append(line)
+    if len(grouped) > max_groups:
+        lines.append(f"+{len(grouped) - max_groups} more")
+    return truncate_text("\n".join(lines).rstrip() + "\n", token_budget)
+
+
+def truncate_text(text: str, token_budget: int | None) -> str:
+    if token_budget is None or token_budget <= 0 or estimate_tokens(text) <= token_budget:
+        return text
+    byte_budget = max(16, token_budget * 4)
+    encoded = text.encode("utf-8", errors="replace")[:byte_budget]
+    return encoded.decode("utf-8", errors="ignore").rstrip() + "\n"

@@ -62,7 +62,7 @@ compiler / linter / test / LSP / build tool
       agents, IDEs, CI, repair bots
 ```
 
-For agent terminals, ANCP can also render compact raw text from the same JSON:
+For agent terminals, ANCP can also render ultra-minimal raw text from the same JSON:
 
 ```text
 normal compiler command
@@ -71,11 +71,11 @@ normal compiler command
 ANCP result.check JSON + raw native logs
         |
         v
-minimal root-cause text for agents
+one-line root-cause text for agents
 ```
 
 See [Compact Signal Layer](docs/compact-signal-layer.md) for `ancp enable`,
-`auto-compact`, token savings telemetry, and raw-output fallback behavior.
+`auto-ultra`, token savings telemetry, `ancp raw`, and `ancp off -- ...`.
 
 ## Design Principles
 

@@ -43,14 +43,14 @@ Python and PowerShell usually exist on Windows machines already, but they are st
 | --- | --- |
 | Python | `python` |
 | TypeScript | `tsc` |
-| JavaScript | `eslint` |
+| JavaScript | `eslint` preferred, `node --check` fallback |
 | Rust | `cargo`, `rustc` |
 | Go | `go` |
 | C | `gcc` or `clang` |
 | C++ | `g++` or `clang++` |
 | Java | `javac` |
 | Kotlin | `kotlinc` |
-| C#/.NET | `dotnet` |
+| C#/.NET | .NET SDK via `dotnet` |
 | Swift | `swift` |
 | Zig | `zig` |
 | Ruby | `ruby` |

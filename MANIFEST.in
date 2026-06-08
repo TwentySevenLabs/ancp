@@ -11,6 +11,9 @@ recursive-include taxonomies *.json
 recursive-include examples *.json
 recursive-include examples/buggy *
 recursive-exclude examples/buggy .ancp/* native-output*.txt
+prune examples/buggy/*/.ancp
+prune examples/buggy/*/*/.ancp
+recursive-exclude examples/buggy *.pyc native-output*.txt
 recursive-include docs *.md
 recursive-include spec *.md
 recursive-include tools *.py

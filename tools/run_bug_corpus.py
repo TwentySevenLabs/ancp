@@ -22,6 +22,7 @@ def ancp_command(*args: str) -> list[str]:
 CASES = [
     ("python", ROOT / "examples/buggy/python", ancp_command("check", "--workspace", ".", "--language", "python")),
     ("typescript", ROOT / "examples/buggy/typescript", ancp_command("check", "--workspace", ".", "--language", "typescript")),
+    ("javascript", ROOT / "examples/buggy/javascript", ancp_command("check", "--workspace", ".", "--language", "javascript")),
     ("rust", ROOT / "examples/buggy/rust", ancp_command("check", "--workspace", ".", "--language", "rust")),
     ("go", ROOT / "examples/buggy/go", ancp_command("check", "--workspace", ".", "--language", "go")),
     ("c-cpp-c", ROOT / "examples/buggy/c", ancp_command("check", "--workspace", ".", "--language", "c-cpp")),

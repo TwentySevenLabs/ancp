@@ -6,6 +6,7 @@ import argparse
 import json
 import pathlib
 import os
+import subprocess
 import sys
 from typing import Any
 
@@ -18,10 +19,10 @@ from .install import status as install_status
 from .install import uninstall as uninstall_ancp
 from .install import write_shims
 from .proxy import compile_main
-from .render import render_markdown, render_text
+from .render import render_markdown, render_text, render_ultra
 from .schema import load_schema, validate_document, validate_path
 from .shim import executable_names
-from .util import find_workspace, read_json, write_json_stdout
+from .util import find_executable, find_workspace, read_json, write_json_stdout
 
 
 def resolve_workspace(value: str | None) -> pathlib.Path:
@@ -45,6 +46,11 @@ def manifest_document() -> dict[str, Any]:
                 {"name": "verify", "profile": "verify", "supported": True, "stability": "stable"},
                 {"name": "graph", "profile": "graph", "supported": True, "stability": "stable"},
                 {"name": "skills", "profile": "skills", "supported": True, "stability": "stable"},
+                {"name": "render", "profile": "core", "supported": True, "stability": "stable"},
+                {"name": "raw", "profile": "core", "supported": True, "stability": "stable"},
+                {"name": "off", "profile": "core", "supported": True, "stability": "stable"},
+                {"name": "enable", "profile": "core", "supported": True, "stability": "stable"},
+                {"name": "disable", "profile": "core", "supported": True, "stability": "stable"},
                 {"name": "export sarif", "profile": "export", "supported": True, "stability": "experimental"},
             ],
             "languages": [adapter.language_entry() for adapter in ADAPTERS],
@@ -430,6 +436,71 @@ def validate_command(args: argparse.Namespace) -> int:
     return 1 if failures else 0
 
 
+def raw_command(args: argparse.Namespace) -> int:
+    path = pathlib.Path(args.from_path)
+    document = read_json(path)
+    raw = ((document.get("data") or {}).get("rawOutput") or {}) if isinstance(document, dict) else {}
+    key = "combinedPath"
+    if args.stream == "stdout":
+        key = "stdoutPath"
+    elif args.stream == "stderr":
+        key = "stderrPath"
+    raw_path_text = raw.get(key)
+    if not raw_path_text:
+        print(f"No raw {args.stream} log recorded in {path}", file=sys.stderr)
+        return 2
+    raw_path = pathlib.Path(raw_path_text)
+    if args.path:
+        print(raw_path)
+        return 0
+    if args.open:
+        if os.name == "nt":
+            os.startfile(raw_path)  # type: ignore[attr-defined]
+            return 0
+        opener = "open" if sys.platform == "darwin" else "xdg-open"
+        subprocess.Popen([opener, str(raw_path)])
+        return 0
+    try:
+        if args.tail and args.tail > 0:
+            lines = raw_path.read_text(encoding="utf-8", errors="replace").splitlines()
+            print("\n".join(lines[-args.tail:]))
+        else:
+            sys.stdout.write(raw_path.read_text(encoding="utf-8", errors="replace"))
+    except OSError as exc:
+        print(f"Could not read raw log {raw_path}: {exc}", file=sys.stderr)
+        return 2
+    return 0
+
+
+def off_command(args: argparse.Namespace) -> int:
+    command = list(args.command_args)
+    if command and command[0] == "--":
+        command = command[1:]
+    if not command:
+        print("usage: ancp off -- <command> [args...]", file=sys.stderr)
+        return 2
+    executable = find_executable(command[0])
+    if not executable:
+        print(f"Executable not found: {command[0]}", file=sys.stderr)
+        return 127
+    env = os.environ.copy()
+    env["ANCP_BYPASS"] = "1"
+    proc = subprocess.run(
+        [executable, *command[1:]],
+        cwd=os.getcwd(),
+        env=env,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=False,
+    )
+    sys.stdout.write(proc.stdout)
+    sys.stderr.write(proc.stderr)
+    return proc.returncode
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="ancp", description="Agent Native Compiler Protocol reference CLI.")
     parser.add_argument("--version", action="version", version=f"ancp {__version__}")
@@ -470,7 +541,7 @@ def build_parser() -> argparse.ArgumentParser:
     shims.add_argument("--workspace", default=None)
     shims.add_argument("--dir", default=".ancp/bin")
     shims.add_argument("--force", action="store_true")
-    shims.add_argument("--output-mode", default="passthrough", choices=["passthrough", "auto-compact", "compact", "json", "both"])
+    shims.add_argument("--output-mode", default="passthrough", choices=["passthrough", "auto-compact", "auto-ultra", "ultra", "compact", "json", "both"])
     shims.add_argument("--output-budget", type=int, default=None)
 
     enable = sub.add_parser("enable")
@@ -479,8 +550,8 @@ def build_parser() -> argparse.ArgumentParser:
     enable.add_argument("--home", default=None)
     enable.add_argument("--force", action="store_true")
     enable.add_argument("--dry-run", action="store_true")
-    enable.add_argument("--output-mode", default="auto-compact", choices=["passthrough", "auto-compact", "compact", "json", "both"])
-    enable.add_argument("--output-budget", type=int, default=800)
+    enable.add_argument("--output-mode", default="auto-ultra", choices=["passthrough", "auto-compact", "auto-ultra", "ultra", "compact", "json", "both"])
+    enable.add_argument("--output-budget", type=int, default=200)
 
     disable = sub.add_parser("disable")
     disable.add_argument("--scope", default="user", choices=["user", "session"])
@@ -494,13 +565,23 @@ def build_parser() -> argparse.ArgumentParser:
     status_parser = sub.add_parser("status")
     status_parser.add_argument("--home", default=None)
 
+    raw = sub.add_parser("raw")
+    raw.add_argument("--from", dest="from_path", default=".ancp/last-check.json")
+    raw.add_argument("--stream", choices=["combined", "stdout", "stderr"], default="combined")
+    raw.add_argument("--path", action="store_true")
+    raw.add_argument("--open", action="store_true")
+    raw.add_argument("--tail", type=int, default=None)
+
+    off = sub.add_parser("off")
+    off.add_argument("command_args", nargs=argparse.REMAINDER)
+
     validate = sub.add_parser("validate")
     validate.add_argument("paths", nargs="+")
 
     render = sub.add_parser("render")
     render.add_argument("--from", dest="from_path", required=True)
     render.add_argument("--max-diagnostics", type=int, default=40)
-    render.add_argument("--format", default="markdown", choices=["markdown", "text"])
+    render.add_argument("--format", default="markdown", choices=["markdown", "text", "ultra"])
     render.add_argument("--budget", type=int, default=None)
 
     schema = sub.add_parser("schema")
@@ -579,12 +660,18 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "status":
         write_json_stdout(install_status(home=pathlib.Path(args.home) if args.home else None))
         return 0
+    if args.command == "raw":
+        return raw_command(args)
+    if args.command == "off":
+        return off_command(args)
     if args.command == "validate":
         return validate_command(args)
     if args.command == "render":
         document = read_json(pathlib.Path(args.from_path))
-        if args.format == "text":
-            print(render_text(document, max_diagnostics=args.max_diagnostics, token_budget=args.budget))
+        if args.format == "ultra":
+            sys.stdout.write(render_ultra(document, token_budget=args.budget))
+        elif args.format == "text":
+            sys.stdout.write(render_text(document, max_diagnostics=args.max_diagnostics, token_budget=args.budget))
         else:
             print(render_markdown(document, max_diagnostics=args.max_diagnostics))
         return 0

@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import shutil
+import subprocess
 from dataclasses import dataclass
 
 
@@ -19,7 +20,7 @@ class Toolchain:
 TOOLCHAINS = [
     Toolchain("python", ("python", "python3"), "Required for ANCP itself and Python syntax checks."),
     Toolchain("typescript", ("tsc",), "TypeScript compiler checks."),
-    Toolchain("javascript", ("eslint", "node"), "ESLint preferred; Node is runtime-only fallback context."),
+    Toolchain("javascript", ("eslint", "node"), "ESLint preferred; Node --check syntax fallback accepted."),
     Toolchain("rust", ("cargo", "rustc"), "Cargo/rustc JSON diagnostics."),
     Toolchain("go", ("go",), "Go build/test tooling."),
     Toolchain("c", ("gcc", "clang"), "GCC or Clang C frontend."),
@@ -57,15 +58,35 @@ def availability(languages: set[str] | None = None) -> list[dict[str, object]]:
         if languages and toolchain.language not in languages:
             continue
         found = {name: shutil.which(name) for name in toolchain.required_any}
+        available = any(found.values())
+        if toolchain.language == "csharp":
+            available = _dotnet_sdk_available()
         rows.append(
             {
                 "language": toolchain.language,
-                "available": any(found.values()),
+                "available": available,
                 "tools": found,
                 "notes": toolchain.notes,
             }
         )
     return rows
+
+
+def _dotnet_sdk_available() -> bool:
+    if not shutil.which("dotnet"):
+        return False
+    try:
+        result = subprocess.run(
+            ["dotnet", "--list-sdks"],
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=10,
+            shell=False,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+    return result.returncode == 0 and bool(result.stdout.strip())
 
 
 def print_table(rows: list[dict[str, object]]) -> None:
@@ -76,7 +97,9 @@ def print_table(rows: list[dict[str, object]]) -> None:
         present = [name for name, path in tools.items() if path]
         missing = [name for name, path in tools.items() if not path]
         status = "ok" if row["available"] else "missing"
-        detail = ", ".join(present) if present else "missing: " + ", ".join(missing)
+        detail = ", ".join(present) if present and row["available"] else "missing: " + ", ".join(missing)
+        if row["language"] == "csharp" and present and not row["available"]:
+            detail = "dotnet present, SDK missing"
         print(f"{str(row['language']).ljust(width)}  {status.ljust(7)}  {detail}")
 
 

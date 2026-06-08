@@ -17,7 +17,7 @@ from typing import Any
 from . import documents as doc
 from .adapters import get_adapter
 from .adapters.base import ToolSpec
-from .render import estimate_tokens, render_text
+from .render import estimate_tokens, render_text, render_ultra
 from .schema import validate_document
 from .util import command_run_object, find_workspace, path_to_uri, run_command, sha256_text
 
@@ -25,6 +25,7 @@ from .util import command_run_object, find_workspace, path_to_uri, run_command, 
 SHIM_TO_ADAPTER_AND_COMMAND = {
     "ancp-tsc": ("typescript", "tsc"),
     "ancp-eslint": ("javascript", "eslint"),
+    "ancp-node": ("javascript", "node"),
     "ancp-pyright": ("python", "pyright"),
     "ancp-ruff": ("python", "ruff"),
     "ancp-python": ("python", "python"),
@@ -146,7 +147,7 @@ def write_raw_output(root: pathlib.Path, run_id: str, stdout: str, stderr: str) 
 def annotate_signal_metrics(document: dict[str, Any], stdout: str, stderr: str) -> None:
     native_text = stdout + stderr
     native_tokens = estimate_tokens(native_text)
-    compact_tokens = estimate_tokens(render_text(document, max_diagnostics=12, token_budget=None))
+    compact_tokens = estimate_tokens(render_ultra(document, token_budget=None))
     savings = 0
     if native_tokens:
         savings = max(0, round((1 - (compact_tokens / native_tokens)) * 100))
@@ -156,9 +157,9 @@ def annotate_signal_metrics(document: dict[str, Any], stdout: str, stderr: str) 
         "estimatedNativeTokens": native_tokens,
         "estimatedCompactTokens": compact_tokens,
         "estimatedSavingsPercent": savings,
-        "renderer": "raw-text",
+        "renderer": "ultra",
     }
-    final_compact = render_text(document, max_diagnostics=12, token_budget=None)
+    final_compact = render_ultra(document, token_budget=None)
     final_compact_tokens = estimate_tokens(final_compact)
     final_savings = max(0, round((1 - (final_compact_tokens / native_tokens)) * 100)) if native_tokens else 0
     document["data"]["signalMetrics"].update(
@@ -180,6 +181,8 @@ def format_proxy_output(
     normalized = mode.lower().replace("_", "-")
     if normalized in {"passthrough", "native", "raw"}:
         return stdout, stderr
+    if normalized in {"ultra", "surgical", "tiny"}:
+        return render_ultra(document, token_budget=token_budget), ""
     if normalized in {"compact", "text", "minimal"}:
         return render_text(document, token_budget=token_budget), ""
     if normalized in {"json", "result"}:
@@ -187,10 +190,10 @@ def format_proxy_output(
     if normalized in {"both", "native-and-compact"}:
         compact = render_text(document, token_budget=token_budget)
         return stdout, stderr + ("\n" if stderr and not stderr.endswith("\n") else "") + compact
-    if normalized in {"auto", "auto-compact", "agent"}:
+    if normalized in {"auto", "auto-compact", "agent", "auto-ultra"}:
         if document.get("status") == "passed":
             return stdout, stderr
-        return render_text(document, token_budget=token_budget), ""
+        return render_ultra(document, token_budget=token_budget), ""
     raise ValueError(f"unknown ANCP output mode: {mode}")
 
 
@@ -292,6 +295,7 @@ def make_shim(name: str):
 
 tsc_main = make_shim("ancp-tsc")
 eslint_main = make_shim("ancp-eslint")
+node_main = make_shim("ancp-node")
 pyright_main = make_shim("ancp-pyright")
 ruff_main = make_shim("ancp-ruff")
 python_main = make_shim("ancp-python")

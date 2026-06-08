@@ -183,8 +183,8 @@ def enable(
     home: pathlib.Path | None = None,
     force: bool = False,
     dry_run: bool = False,
-    output_mode: str = "auto-compact",
-    output_budget: int | None = 800,
+    output_mode: str = "auto-ultra",
+    output_budget: int | None = 200,
 ) -> dict[str, Any]:
     resolved_home = (home or default_home()).resolve()
     shim_dir = default_shim_dir(resolved_home)
